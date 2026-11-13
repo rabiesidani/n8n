@@ -76,6 +76,7 @@ button.chip{padding:7px 12px;font-size:.88rem}
 .item .t small{color:var(--muted)}
 .sg{width:44px;height:44px;flex:none;display:block}
 .sg.big{width:132px;height:132px;margin:4px auto 0}
+.scene{width:100%;max-width:380px;height:auto;display:block;margin:0 auto;border-radius:10px}
 .chev{color:var(--muted);font-size:1.3rem}
 .theory h3{margin-top:4px}
 .theory ul{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
@@ -627,6 +628,162 @@ const GENS=[
  {t:'sig',n:8,f:genSign}
 ];
 
+/* ============ Illustrated scenarios: top-down road scenes drawn as SVG, randomized every run ============ */
+const SC={ground:'#A7BD8C',asph:'#4A4F57',line:'#FFFFFF',yel:'#F2C200',walk:'#CFCAC0',kerb:'#8E8A80',a:'#D9342B',b:'#2F6FD6',c:'#F0A202',truck:'#7A7F87'};
+const AH='<defs><marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#fff"/></marker></defs>';
+const scn=(w,h,inner)=>`<svg viewBox="0 0 ${w} ${h}" class="scene" aria-hidden="true">${AH}<rect width="${w}" height="${h}" fill="${SC.ground}"/>${inner}</svg>`;
+const lbl=(t)=>`<circle r="9" fill="#fff" stroke="#111" stroke-width="1.5"/><text y="1" text-anchor="middle" dominant-baseline="central" font-family="'Barlow Condensed',Arial,sans-serif" font-weight="700" font-size="14" fill="#111">${t}</text>`;
+function veh(x,y,rot,col,lab,kind='car'){
+  let b;
+  if(kind==='bike')b=`<rect x="-2.5" y="-11" width="5" height="22" rx="2.5" fill="#222"/><circle r="5" fill="${col}"/><rect x="-8" y="-6" width="16" height="3" rx="1.5" fill="#222"/>`;
+  else if(kind==='truck')b=`<rect x="-11" y="-30" width="22" height="60" rx="3" fill="${col}" stroke="#222"/><rect x="-11" y="-30" width="22" height="14" rx="3" fill="#5D636B" stroke="#222"/><rect x="-8" y="-28" width="16" height="5" rx="1" fill="#BFD7EA"/>`;
+  else{b=`<rect x="-9" y="-16" width="18" height="32" rx="5" fill="${col}" stroke="#222"/><rect x="-6.5" y="-10" width="13" height="7" rx="2" fill="#CFE2F0"/><rect x="-6.5" y="8" width="13" height="4" rx="1.5" fill="#A9C2D6"/>`;
+    if(kind==='amb')b=`<rect x="-10" y="-19" width="20" height="38" rx="4" fill="#fff" stroke="#222"/><rect x="-7" y="-13" width="14" height="6" rx="2" fill="#CFE2F0"/><rect x="-8" y="-4" width="7" height="4" fill="#2F6FD6"/><rect x="1" y="-4" width="7" height="4" fill="#2F6FD6"/><rect x="-2" y="2" width="4" height="10" fill="#D9342B"/><rect x="-6" y="5" width="12" height="4" fill="#D9342B"/>`;}
+  return `<g transform="translate(${x} ${y}) rotate(${rot})">${b}${lab?`<g transform="rotate(${-rot}) translate(16 -18)">${lbl(lab)}</g>`:''}</g>`;
+}
+const ped=(x,y)=>`<g transform="translate(${x} ${y})"><ellipse rx="8" ry="4.5" fill="#6A3FA0"/><circle r="4.2" fill="#E8B48A" stroke="#333" stroke-width=".8"/></g>`;
+const mini=(k,x,y,s=28,...a)=>`<rect x="${x+s/2-1.5}" y="${y+s-2}" width="3" height="8" fill="#555"/><svg x="${x}" y="${y}" width="${s}" height="${s}" viewBox="0 0 100 100">${SIG[k](...a)}</svg>`;
+const arrowP=(d,col='#fff')=>`<path d="${d}" fill="none" stroke="${col}" stroke-width="3.5" stroke-dasharray="7 5" marker-end="url(#ah)" opacity=".95"/>`;
+
+/* Crossroads 300x300, right-hand traffic. Arms: S (heading north), E (heading west), N (heading south), W (heading east) */
+const ARMS={S:{c:[170,250,0],s:[198,200],st:'M150 196 H190'},E:{c:[250,130,-90],s:[198,74],st:'M196 110 V150'},N:{c:[130,50,180],s:[74,74],st:'M110 104 H150'},W:{c:[50,170,90],s:[74,200],st:'M104 150 V190'}};
+const RIGHT={S:'E',E:'N',N:'W',W:'S'},LEFTOF={S:'W',W:'N',N:'E',E:'S'},OPP={S:'N',N:'S',E:'W',W:'E'};
+function crossBase(){
+  const d='stroke="#fff" stroke-width="2.5" stroke-dasharray="12 9"';
+  return `<rect x="0" y="110" width="300" height="80" fill="${SC.asph}"/><rect x="110" y="0" width="80" height="300" fill="${SC.asph}"/>
+  <line x1="0" y1="150" x2="104" y2="150" ${d}/><line x1="196" y1="150" x2="300" y2="150" ${d}/><line x1="150" y1="0" x2="150" y2="104" ${d}/><line x1="150" y1="196" x2="150" y2="300" ${d}/>`;
+}
+const vehAt=(arm,col,lab)=>{const [x,y,r]=ARMS[arm].c;return veh(x,y,r,col,lab)};
+const signAt=(arm,k)=>{const [x,y]=ARMS[arm].s;return `<path d="${ARMS[arm].st}" stroke="#fff" stroke-width="${k==='stop'?5:3}" ${k==='yield'?'stroke-dasharray="6 4"':''}/>`+mini(k,x,y)};
+const AB=()=>Math.random()<.5?['A','B']:['B','A'];
+
+const SCENE_GENS=[
+ // 1. Unsigned or signed crossroads: who goes first?
+ {t:'pri',n:3,f(){
+   const a1=rnd(['S','E','N','W']),a2=Math.random()<.5?RIGHT[a1]:LEFTOF[a1];const [l1,l2]=AB();
+   let first=RIGHT[a1]===a2?a2:a1; // car on the other's right goes first
+   const mode=rnd(['none','none','stop','yield']);let signs='';
+   if(mode!=='none'){signs=signAt(first,mode);first=first===a1?a2:a1}
+   const win=first===a1?l1:l2,lose=first===a1?l2:l1;
+   return {t:'pri',k:`x-${a1}${a2}${mode}${l1}`,img:scn(300,300,crossBase()+signs+vehAt(a1,SC.a,l1)+vehAt(a2,SC.b,l2)),
+    q:mode==='none'?['Ambos vehículos siguen recto en esta intersección sin señalizar. ¿Cuál pasa primero?','Both vehicles go straight on at this unsigned junction. Which goes first?']:['Ambos vehículos siguen recto. ¿Cuál pasa primero?','Both vehicles go straight on. Which goes first?'],
+    o:[['El vehículo '+win,'Vehicle '+win],['El vehículo '+lose,'Vehicle '+lose],['El que llegue primero a la intersección','Whichever reaches the junction first']],
+    x:mode==='none'?['Sin señales, tiene preferencia quien se aproxima por la derecha.','With no signs, the vehicle approaching from the right has priority.']:[`La señal de ${mode==='stop'?'STOP':'ceda el paso'} obliga a ceder, aunque venga por la derecha.`,`The ${mode==='stop'?'STOP':'give way'} sign means yielding, even to traffic from the left.`]};}},
+ // 2. Left turn against oncoming traffic
+ {t:'pri',n:2,f(){
+   const aTurns=Math.random()<.6;const [la,lb]=AB();
+   const pathA=aTurns?'M170 228 C170 160 150 130 70 130':'M170 228 V40';
+   const pathB=aTurns?(Math.random()<.5?'M130 72 V262':'M130 72 C130 120 118 130 60 130'):'M130 72 C130 145 150 170 240 170';
+   const win=aTurns?lb:la,lose=aTurns?la:lb;
+   return {t:'pri',k:'lt-'+aTurns+la,img:scn(300,300,crossBase()+arrowP(pathA,'#FFD7D4')+arrowP(pathB,'#D6E4FF')+veh(170,250,0,SC.a,la)+veh(130,50,180,SC.b,lb)),
+    q:['Las flechas indican la trayectoria de cada vehículo. ¿Cuál pasa primero?','The arrows show where each vehicle is going. Which goes first?'],
+    o:[['El vehículo '+win,'Vehicle '+win],['El vehículo '+lose,'Vehicle '+lose],['Cualquiera, no hay conflicto','Either, there is no conflict']],
+    x:['Quien gira a la izquierda cede el paso a los vehículos que vienen de frente.','A vehicle turning left gives way to oncoming traffic.']};}},
+ // 3. Roundabout
+ {t:'pri',n:2,f(){
+   const pos=rnd([[110,190,135],[94,150,180],[105,112,225]]);const [la,lb]=AB();
+   const base=`<rect x="0" y="110" width="300" height="80" fill="${SC.asph}"/><rect x="110" y="0" width="80" height="300" fill="${SC.asph}"/><circle cx="150" cy="150" r="80" fill="${SC.asph}"/><circle cx="150" cy="150" r="34" fill="${SC.ground}" stroke="#fff" stroke-width="3"/><circle cx="150" cy="150" r="57" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="10 8"/>
+    <path d="M152 232 H190" stroke="#fff" stroke-width="3" stroke-dasharray="6 4"/>`+mini('yield',198,236);
+   return {t:'pri',k:'rb-'+pos[2]+la,img:scn(300,300,base+veh(pos[0],pos[1],pos[2],SC.a,la)+veh(170,258,0,SC.b,lb)),
+    q:[`El vehículo ${lb} quiere entrar en la glorieta y el ${la} ya circula por ella. ¿Quién tiene preferencia?`,`Vehicle ${lb} wants to enter the roundabout and ${la} is already on it. Who has priority?`],
+    o:[['El vehículo '+la,'Vehicle '+la],['El vehículo '+lb,'Vehicle '+lb],['El que venga por la derecha','Whoever comes from the right']],
+    x:['Quien ya circula dentro de la glorieta tiene preferencia; además, la entrada tiene ceda el paso.','Traffic already on the roundabout has priority; the entry also has a give-way.']};}},
+ // 4. Overtaking: which centre line?
+ {t:'man',n:3,f(){
+   const ty=rnd(['cont','dash','mixOK','mixNo']);const bike=Math.random()<.3;
+   let cl;const D='stroke="#fff" stroke-width="2.5"';
+   if(ty==='cont')cl=`<line x1="0" y1="75" x2="320" y2="75" ${D}/>`;
+   else if(ty==='dash')cl=`<line x1="0" y1="75" x2="320" y2="75" ${D} stroke-dasharray="14 10"/>`;
+   else cl=`<line x1="0" y1="72" x2="320" y2="72" ${D} ${ty==='mixNo'?'stroke-dasharray="14 10"':''}/><line x1="0" y1="78" x2="320" y2="78" ${D} ${ty==='mixOK'?'stroke-dasharray="14 10"':''}/>`;
+   const road=`<rect x="0" y="32" width="320" height="86" fill="${SC.asph}"/><line x1="0" y1="36" x2="320" y2="36" stroke="#fff" stroke-width="2"/><line x1="0" y1="114" x2="320" y2="114" stroke="#fff" stroke-width="2"/>`+cl;
+   const slow=bike?veh(185,104,90,'#E8E8E8','A','bike'):veh(185,96,90,SC.truck,'A','truck');
+   const ok=ty==='dash'||ty==='mixOK';
+   const lineTxt={cont:['La línea continua no se puede rebasar.','A solid line must not be crossed.'],dash:['La línea discontinua permite adelantar si hay visibilidad y espacio.','A broken line allows overtaking with enough visibility and space.'],mixOK:['En una línea doble mixta manda la línea más cercana a ti: aquí es discontinua.','With a mixed double line, the line nearest you rules: here it is broken.'],mixNo:['En una línea doble mixta manda la línea más cercana a ti: aquí es continua.','With a mixed double line, the line nearest you rules: here it is solid.']}[ty];
+   return {t:'man',k:'ov-'+ty+bike,img:scn(320,150,road+slow+veh(95,96,90,SC.b,'B')),
+    q:[`¿Puede el turismo B adelantar al ${bike?'ciclista':'camión'} A en esta situación?`,`May car B overtake ${bike?'cyclist':'lorry'} A here?`],
+    o:ok?[['Sí, si hay visibilidad y espacio suficientes','Yes, if there is enough visibility and space'],['No, la marca vial lo prohíbe','No, the road marking forbids it'],['Sí, superando el límite en 20 km/h si hace falta','Yes, exceeding the limit by 20 km/h if needed']]
+        :[['No, la marca vial lo prohíbe','No, the road marking forbids it'],['Sí, si hay visibilidad y espacio suficientes','Yes, if there is enough visibility and space'],['Sí, superando el límite en 20 km/h si hace falta','Yes, exceeding the limit by 20 km/h if needed']],
+    x:lineTxt};}},
+ // 5. Overtaking a cyclist: lateral gap
+ {t:'man',n:1,f(){
+   const road=`<rect x="0" y="32" width="320" height="86" fill="${SC.asph}"/><line x1="0" y1="36" x2="320" y2="36" stroke="#fff" stroke-width="2"/><line x1="0" y1="114" x2="320" y2="114" stroke="#fff" stroke-width="2"/><line x1="0" y1="75" x2="320" y2="75" stroke="#fff" stroke-width="2.5" stroke-dasharray="14 10"/>`;
+   return {t:'man',k:'ovbike-gap',img:scn(320,150,road+veh(190,104,90,'#E8E8E8',null,'bike')+veh(150,70,90,SC.b,'A')+`<line x1="190" y1="80" x2="190" y2="98" stroke="${SC.yel}" stroke-width="2"/><text x="198" y="92" font-family="Arial" font-size="12" font-weight="700" fill="${SC.yel}">?</text>`),
+    q:['¿Qué separación lateral mínima debe dejar el turismo A al adelantar al ciclista?','What minimum side gap must car A leave when overtaking the cyclist?'],
+    o:[['1,5 metros','1.5 metres'],['1 metro','1 metre'],['La que permita el carril, sin mínimo','Whatever the lane allows, no minimum']],x:['Mínimo 1,5 m; puede ocupar parte o todo el carril contrario si es seguro.','At least 1.5 m; you may use part or all of the opposite lane if safe.']};}},
+ // 6. Traffic light states
+ {t:'sig',n:3,f(){
+   const st=rnd(['red','amber','green','flash','arrowR','arrowS']);
+   const on={red:st==='red'||st==='arrowR'||st==='arrowS',amber:st==='amber'||st==='flash',green:st==='green'};
+   const lamp=(cy,col,lit)=>`<circle cx="150" cy="${cy}" r="17" fill="${lit?col:'#33373C'}">${lit&&st==='flash'?'<animate attributeName="opacity" values="1;.15;1" dur="1s" repeatCount="indefinite"/>':''}</circle>`;
+   let svg=`<rect x="0" y="120" width="320" height="50" fill="${SC.asph}"/><rect x="146" y="150" width="8" height="20" fill="#555"/><rect x="125" y="8" width="50" height="146" rx="10" fill="#1E2226"/>`+lamp(38,'#E32626',on.red)+lamp(81,'#F5A300',on.amber)+lamp(124,'#1FB45A',on.green);
+   if(st==='arrowR'||st==='arrowS')svg+=`<rect x="180" y="104" width="40" height="40" rx="8" fill="#1E2226"/><circle cx="200" cy="124" r="15" fill="#1FB45A"/><path d="M190 128 H204 V134 L212 124 L204 114 V120 H190 Z" fill="#fff"/>`;
+   const A={red:['Detenerme antes de la línea de detención','Stop before the stop line'],amber:['Detenerme, salvo que no pueda hacerlo con seguridad','Stop, unless I cannot do so safely'],green:['Pasar, sin entrar si el cruce está bloqueado','Proceed, without entering if the junction is blocked'],flash:['Pasar con precaución, respetando las prioridades','Proceed with caution, respecting priorities'],arrowR:['Girar a la derecha con precaución, cediendo a peatones y vehículos','Turn right carefully, giving way to pedestrians and vehicles'],arrowS:['Detenerme: la flecha solo permite girar a la derecha','Stop: the arrow only allows turning right']};
+   const Q={red:['¿Qué debes hacer ante este semáforo?','What must you do at this light?'],amber:['El semáforo acaba de cambiar a esta luz fija. ¿Qué debes hacer?','The light has just changed to this steady light. What must you do?'],green:['¿Qué debes hacer ante este semáforo?','What must you do at this light?'],flash:['La luz ámbar parpadea. ¿Qué debes hacer?','The amber light is flashing. What must you do?'],arrowR:['Quieres girar a la derecha. ¿Qué haces?','You want to turn right. What do you do?'],arrowS:['Quieres seguir recto. ¿Qué haces?','You want to go straight on. What do you do?']};
+   const others=Object.keys(A).filter(k=>k!==st&&!(st==='arrowS'&&k==='red')&&!(st==='red'&&k==='arrowS'));
+   return {t:'sig',k:'tl-'+st,img:scn(320,170,svg),q:Q[st],o:[A[st],...pick(others,2).map(k=>A[k])],x:A[st]};}},
+ // 7. Traffic officer
+ {t:'sig',n:1,f(){
+   const up=Math.random()<.5;
+   const arms=up?`<path d="M136 74 L118 104" stroke="#1E3557" stroke-width="10" stroke-linecap="round"/><path d="M164 74 L172 20" stroke="#1E3557" stroke-width="10" stroke-linecap="round"/><circle cx="173" cy="16" r="6" fill="#fff"/>`
+     :`<path d="M136 76 L76 76" stroke="#1E3557" stroke-width="10" stroke-linecap="round"/><path d="M164 76 L224 76" stroke="#1E3557" stroke-width="10" stroke-linecap="round"/><circle cx="72" cy="76" r="6" fill="#fff"/><circle cx="228" cy="76" r="6" fill="#fff"/>`;
+   const fig=`<rect x="0" y="150" width="300" height="50" fill="${SC.asph}"/>${arms}<rect x="134" y="66" width="32" height="56" rx="8" fill="#C6E34B"/><rect x="134" y="92" width="32" height="5" fill="#ddd"/><rect x="136" y="120" width="11" height="44" fill="#1E3557"/><rect x="153" y="120" width="11" height="44" fill="#1E3557"/><circle cx="150" cy="52" r="12" fill="#E8B48A"/><rect x="136" y="36" width="28" height="9" rx="3" fill="#1E3557"/>`;
+   return {t:'sig',k:'ag-'+up,img:scn(300,200,fig),
+    q:up?['El agente tiene el brazo levantado verticalmente. ¿Qué indica?','The officer has one arm raised vertically. What does it mean?']:['Te acercas de frente a este agente, que tiene los brazos extendidos horizontalmente. ¿Qué haces?','You approach this officer from the front; both arms are stretched out. What do you do?'],
+    o:up?[['Detención para todos los que se aproximan','All approaching traffic must stop'],['Solo deben detenerse los que vienen de frente','Only traffic from the front must stop'],['Que aumente la velocidad','Speed up']]:[['Detenerme','Stop'],['Continuar, me está dando paso','Continue, I am being waved on'],['Girar obligatoriamente a la derecha','Turn right, compulsorily']],
+    x:up?['Salvo quien ya no pueda detenerse con seguridad.','Except those who can no longer stop safely.']:['Con brazos horizontales se detienen quienes se aproximan de frente o por detrás.','With arms out, traffic from the front or behind must stop.']};}},
+ // 8. Kerb markings: may you stop / park here?
+ {t:'par',n:3,f(){
+   const ty=rnd(['ycont','ydash','zebra','bus','bay']);const act=Math.random()<.5?'park':'stop';
+   let m=`<rect x="0" y="16" width="320" height="94" fill="${SC.asph}"/><rect x="0" y="110" width="320" height="40" fill="${SC.walk}"/><line x1="0" y1="110" x2="320" y2="110" stroke="${SC.kerb}" stroke-width="3"/><line x1="0" y1="62" x2="320" y2="62" stroke="#fff" stroke-width="2.5" stroke-dasharray="14 10"/>`;
+   if(ty==='ycont')m+=`<line x1="0" y1="107" x2="320" y2="107" stroke="${SC.yel}" stroke-width="4"/>`;
+   if(ty==='ydash')m+=`<line x1="0" y1="107" x2="320" y2="107" stroke="${SC.yel}" stroke-width="4" stroke-dasharray="16 10"/>`;
+   if(ty==='zebra')m+=[0,1,2,3,4,5,6,7,8].map(i=>`<rect x="128" y="${18+i*10}" width="64" height="6" fill="#fff"/>`).join('');
+   if(ty==='bus')m+=`<line x1="0" y1="70" x2="320" y2="70" stroke="#fff" stroke-width="5"/><text x="250" y="94" font-family="Arial" font-weight="700" font-size="16" fill="#fff">BUS</text>`;
+   if(ty==='bay')m+=`<line x1="0" y1="82" x2="320" y2="82" stroke="#fff" stroke-width="2" stroke-dasharray="6 5"/>`+[40,110,180,250].map(x=>`<line x1="${x}" y1="82" x2="${x}" y2="108" stroke="#fff" stroke-width="2"/>`).join('');
+   const carX=ty==='zebra'?160:145;
+   const yes=ty==='bay'||(ty==='ydash'&&act==='stop');
+   const why={ycont:['Línea amarilla continua: prohibidas la parada y el estacionamiento.','Solid yellow line: no stopping or parking.'],ydash:['Línea amarilla discontinua: se puede parar, pero no estacionar.','Broken yellow line: stopping allowed, parking not.'],zebra:['En un paso de peatones están prohibidas la parada y el estacionamiento.','Stopping and parking are forbidden on a zebra crossing.'],bus:['En el carril bus están prohibidas la parada y el estacionamiento.','Stopping and parking in a bus lane are forbidden.'],bay:['Es una zona de estacionamiento señalizada en la calzada.','It is a marked parking area.']}[ty];
+   return {t:'par',k:'kb-'+ty+act,img:scn(320,150,m+veh(carX,93,90,SC.a,'A')),
+    q:act==='park'?['¿Puede el conductor del vehículo A dejarlo estacionado aquí para hacer unas compras?','May the driver leave car A parked here to go shopping?']:['¿Puede el vehículo A detenerse aquí un momento, sin que baje el conductor, para recoger a alguien?','May car A briefly stop here, driver staying inside, to pick someone up?'],
+    o:yes?[['Sí','Yes'],['No','No'],['Solo con los warning encendidos','Only with hazard lights on']]:[['No','No'],['Sí','Yes'],['Solo con los warning encendidos','Only with hazard lights on']],x:why};}},
+ // 9. Motorway lanes
+ {t:'via',n:2,f(){
+   const v=Math.random()<.5;
+   let road=`<rect x="0" y="22" width="320" height="126" fill="${SC.asph}"/><line x1="0" y1="25" x2="320" y2="25" stroke="#fff" stroke-width="2"/><line x1="0" y1="145" x2="320" y2="145" stroke="#fff" stroke-width="2"/><line x1="0" y1="65" x2="320" y2="65" stroke="#fff" stroke-width="2.5" stroke-dasharray="16 10"/><line x1="0" y1="105" x2="320" y2="105" stroke="#fff" stroke-width="2.5" stroke-dasharray="16 10"/>`;
+   if(v)return {t:'via',k:'mw-left',img:scn(320,170,road+veh(170,45,90,SC.a,'A')+veh(30,125,90,SC.b,'')),
+     q:['El vehículo A circula por el carril izquierdo de una autovía y no tiene a nadie delante. ¿Qué debe hacer?','Car A is in the left lane of a dual carriageway with nobody ahead. What should it do?'],
+     o:[['Volver al carril derecho cuando pueda hacerlo con seguridad','Move back to the right lane when safe'],['Seguir por el izquierdo si va al límite de velocidad','Stay left if driving at the limit'],['Circular siempre por el central','Always use the middle lane']],x:['El carril izquierdo es para adelantar.','The left lane is for overtaking.']};
+   return {t:'via',k:'mw-pass',img:scn(320,170,road+veh(230,125,90,SC.truck,'','truck')+veh(150,125,90,SC.a,'A')+veh(50,85,90,SC.b,'B')+`<text x="20" y="90" font-family="Arial" font-size="14" font-weight="700" fill="#fff">»</text>`),
+     q:['A quiere adelantar al camión, pero B se acerca rápido por el carril central. ¿Qué debe hacer A?','A wants to overtake the lorry, but B is approaching fast in the middle lane. What should A do?'],
+     o:[['Esperar a que pase B antes de cambiar de carril','Wait for B to pass before changing lanes'],['Cambiar de carril: B debe frenar','Change lanes: B must brake'],['Adelantar por el arcén','Overtake on the hard shoulder']],x:['Antes de cambiar de carril, asegúrate de no obligar a frenar a quien se acerca.','Before changing lanes, make sure you won\'t force approaching traffic to brake.']};}},
+ // 10. Urban speed by street type
+ {t:'vel',n:2,f(){
+   const ty=rnd(['one','two','shared']);let s;
+   if(ty==='shared'){s=`<rect x="0" y="10" width="320" height="140" fill="#B8AFA2"/>`+Array.from({length:14},(_,i)=>`<line x1="${i*24}" y1="10" x2="${i*24}" y2="150" stroke="#A39A8C" stroke-width="1.5"/>`).join('')+[30,90,150,210,270].map(x=>`<circle cx="${x}" cy="30" r="4" fill="#555"/><circle cx="${x}" cy="130" r="4" fill="#555"/>`).join('')+ped(220,50)+ped(70,118)+veh(140,82,90,SC.a,'A');}
+   else if(ty==='one'){s=`<rect x="0" y="10" width="320" height="26" fill="${SC.walk}"/><rect x="0" y="124" width="320" height="26" fill="${SC.walk}"/><rect x="0" y="36" width="320" height="88" fill="${SC.asph}"/><line x1="0" y1="80" x2="320" y2="80" stroke="#fff" stroke-width="2.5" stroke-dasharray="14 10"/>`+veh(140,102,90,SC.a,'A')+veh(240,58,-90,SC.b,'')+ped(60,22);}
+   else{s=`<rect x="0" y="4" width="320" height="16" fill="${SC.walk}"/><rect x="0" y="150" width="320" height="16" fill="${SC.walk}"/><rect x="0" y="20" width="320" height="130" fill="${SC.asph}"/><line x1="0" y1="83" x2="320" y2="83" stroke="#fff" stroke-width="2.5"/><line x1="0" y1="88" x2="320" y2="88" stroke="#fff" stroke-width="2.5"/><line x1="0" y1="52" x2="320" y2="52" stroke="#fff" stroke-width="2" stroke-dasharray="14 10"/><line x1="0" y1="119" x2="320" y2="119" stroke="#fff" stroke-width="2" stroke-dasharray="14 10"/>`+veh(140,134,90,SC.a,'A')+veh(220,104,90,SC.b,'')+veh(90,36,-90,SC.c,'');}
+   const v={one:30,two:50,shared:20}[ty];
+   return {t:'vel',k:'urb-'+ty,img:scn(320,ty==='two'?170:160,s),q:['Vía urbana sin señales de velocidad. ¿A qué velocidad máxima puede circular el turismo A?','Urban street with no speed signs. What is the maximum speed for car A?'],
+    o:[[v+' km/h',v+' km/h'],...[20,30,40,50].filter(x=>x!==v).slice(0,3).sort(()=>Math.random()-.5).slice(0,2).map(x=>[x+' km/h',x+' km/h'])],
+    x:['Plataforma única: 20 km/h. Un carril por sentido: 30 km/h. Dos o más carriles por sentido: 50 km/h.','Single-surface street: 20. One lane each way: 30. Two or more lanes each way: 50.']};}},
+ // 11. Zebra crossing
+ {t:'pri',n:2,f(){
+   const p=rnd([[210,105,'mine'],[210,52,'other'],[210,140,'wait']]);
+   const s=`<rect x="0" y="10" width="320" height="22" fill="${SC.walk}"/><rect x="0" y="126" width="320" height="24" fill="${SC.walk}"/><rect x="0" y="32" width="320" height="94" fill="${SC.asph}"/><line x1="0" y1="79" x2="170" y2="79" stroke="#fff" stroke-width="2.5" stroke-dasharray="14 10"/><line x1="250" y1="79" x2="320" y2="79" stroke="#fff" stroke-width="2.5" stroke-dasharray="14 10"/>`+[0,1,2,3,4,5,6,7,8].map(i=>`<rect x="185" y="${34+i*10}" width="50" height="6" fill="#fff"/>`).join('')+ped(p[0],p[1])+veh(110,103,90,SC.a,'A');
+   return {t:'pri',k:'zb-'+p[2],img:scn(320,160,s),
+    q:p[2]==='wait'?['Un peatón espera junto al paso para cruzar. ¿Qué debe hacer el vehículo A?','A pedestrian is waiting at the crossing. What should car A do?']:['Un peatón está cruzando por el paso. ¿Qué debe hacer el vehículo A?','A pedestrian is on the crossing. What should car A do?'],
+    o:[['Detenerse y cederle el paso','Stop and let them cross'],p[2]==='other'?['Pasar, porque el peatón está en el otro carril','Go on, the pedestrian is in the other lane']:['Pasar, porque aún no ha llegado a su carril','Go on, they haven\'t reached its lane yet'],['Avisar con el claxon y continuar','Sound the horn and continue']],
+    x:['En un paso de peatones, el peatón tiene preferencia.','Pedestrians have priority on a zebra crossing.']};}},
+ // 12. Emergency vehicle
+ {t:'pri',n:1,f(){
+   const road=`<rect x="0" y="32" width="320" height="86" fill="${SC.asph}"/><line x1="0" y1="36" x2="320" y2="36" stroke="#fff" stroke-width="2"/><line x1="0" y1="114" x2="320" y2="114" stroke="#fff" stroke-width="2"/><line x1="0" y1="75" x2="320" y2="75" stroke="#fff" stroke-width="2.5" stroke-dasharray="14 10"/>`;
+   const glow=`<circle cx="85" cy="96" r="26" fill="#2F6FD6" opacity=".25"><animate attributeName="opacity" values=".35;.05;.35" dur=".8s" repeatCount="indefinite"/></circle>`;
+   return {t:'pri',k:'amb',img:scn(320,150,road+glow+veh(85,96,90,'#fff','','amb')+veh(190,96,90,SC.a,'A')),
+    q:['Una ambulancia con luces y sirena se acerca por detrás del vehículo A. ¿Qué debe hacer A?','An ambulance with lights and siren approaches behind car A. What should A do?'],
+    o:[['Apartarse a la derecha o detenerse para facilitarle el paso','Move right or stop to let it pass'],['Acelerar para no entorpecerla','Speed up to stay out of its way'],['Frenar en seco en su carril','Brake hard in its lane']],x:['Hazlo con antelación y sin maniobras bruscas.','Do it early and without sudden moves.']};}}
+];
+GENS.push(...SCENE_GENS);
+
 /* ============ State and storage ============ */
 const store={get(k,d){try{const v=localStorage.getItem('carnetB.'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('carnetB.'+k,JSON.stringify(v))}catch(e){}}};
 let lang=store.get('lang',(navigator.language||'').toLowerCase().startsWith('es')?0:1);
@@ -678,11 +835,12 @@ const inst=q=>{const order=shuffle(q.o.map((_,i)=>i));return {q,order,correct:or
 
 function startQuiz(mode,opts={}){
   let pool,n;
-  if(mode==='exam'){pool=buildPool();n=30}
-  else if(mode==='mist'){pool=buildPool(null,true);n=Math.min(pool.length,opts.n||20)}
-  else {pool=buildPool(opts.topic);n=Math.min(pool.length,opts.n||10)}
+  let picked;
+  if(mode==='exam'){pool=buildPool();const vis=sample(pool.filter(q=>q.img),12);picked=shuffle([...vis,...sample(pool.filter(q=>!q.img),30-vis.length)])}
+  else if(mode==='mist'){pool=buildPool(null,true);picked=sample(pool,Math.min(pool.length,opts.n||20))}
+  else {pool=buildPool(opts.topic);picked=sample(pool,Math.min(pool.length,opts.n||10))}
   if(!pool.length)return;
-  const items=sample(pool,n).map(inst);
+  const items=picked.map(inst);
   quiz={mode,items,i:0,topic:opts.topic||null,n:opts.n,start:Date.now(),deadline:mode==='exam'?Date.now()+30*60*1000:null,done:false};
   confirmFinish=false;go('quiz');
   if(mode==='exam'){clearInterval(timerId);timerId=setInterval(tick,1000)}
@@ -788,7 +946,7 @@ function vQuiz(){
   const it=quiz.items[quiz.i],q=it.q,n=quiz.items.length,exam=quiz.mode==='exam';
   const show=!exam&&it.checked;
   const opts=it.order.map((oi,pos)=>{let c='opt';if(show){if(pos===it.correct)c+=' right';else if(pos===it.chosen)c+=' wrong'}else if(pos===it.chosen)c+=' sel';
-    return `<button class="${c}" data-act="pick" data-pos="${pos}" ${show?'disabled':''}><span class="k">${'ABC'[pos]}</span><span>${esc(tr(q.o[oi]))}</span></button>`}).join('');
+    return `<button class="${c}" data-act="pick" data-pos="${pos}" ${show?'disabled':''}><span class="k">${pos+1}</span><span>${esc(tr(q.o[oi]))}</span></button>`}).join('');
   const unanswered=quiz.items.filter(x=>x.chosen===null).length;
   return `<div class="stack">
   <div class="qhead"><button class="btn" data-act="quit" style="min-height:40px;padding:6px 12px">${u('quit')}</button>

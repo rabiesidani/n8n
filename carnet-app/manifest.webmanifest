@@ -1,0 +1,15 @@
+{
+  "name": "Carnet B Trainer",
+  "short_name": "Carnet B",
+  "description": "Teoría y simulacros aleatorios del examen DGT del permiso B",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EEF2F6",
+  "theme_color": "#1D5BB8",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon.svg", "sizes": "any", "type": "image/svg+xml"}
+  ]
+}

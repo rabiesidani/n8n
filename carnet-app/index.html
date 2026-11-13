@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1D5BB8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Carnet B">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Carnet B Trainer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: single-column phone app, sticky header, fixed bottom tab bar; road-sign blue/red/yellow on cool asphalt neutrals */
+:root{
+  --bg:#EEF2F6; --surface:#FFFFFF; --sunk:#E3E9F0; --ink:#132033; --muted:#58667A; --line:#D3DBE5;
+  --blue:#1D5BB8; --blue-ink:#FFFFFF; --red:#C1121F; --amber:#E9A800; --ok:#177A43; --ok-bg:#E2F4EA; --bad:#B4161F; --bad-bg:#FBE6E7;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif; --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E141C; --surface:#17202B; --sunk:#111922; --ink:#E6ECF3; --muted:#93A1B4; --line:#283444;
+  --blue:#3F7FE0; --blue-ink:#FFFFFF; --red:#F0505D; --amber:#F5C33B; --ok:#45C67F; --ok-bg:#12301F; --bad:#FF6B75; --bad-bg:#3A1519; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E141C; --surface:#17202B; --sunk:#111922; --ink:#E6ECF3; --muted:#93A1B4; --line:#283444;
+  --blue:#3F7FE0; --blue-ink:#FFFFFF; --red:#F0505D; --amber:#F5C33B; --ok:#45C67F; --ok-bg:#12301F; --bad:#FF6B75; --bad-bg:#3A1519; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.1;text-wrap:balance;margin:0}
+h1{font-size:2rem} h2{font-size:1.5rem} h3{font-size:1.2rem}
+p{margin:0}
+.wrap{max-width:640px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;gap:10px;padding-block:10px}
+.brand{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.brand .plate{width:34px;height:34px;border-radius:7px;background:var(--blue);color:#fff;display:grid;place-items:center;font-family:var(--display);font-size:1.3rem;font-weight:700;border:2px solid var(--surface);box-shadow:0 0 0 2px var(--blue)}
+.brand b{font-family:var(--display);font-size:1.25rem;letter-spacing:.02em}
+.lang{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.lang button{border:0;background:transparent;padding:5px 11px;font-weight:600;font-size:.85rem;color:var(--muted)}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+main{padding-block:16px 110px}
+.stack{display:flex;flex-direction:column;gap:16px}
+.eyebrow{font-size:.75rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+/* Motorway-style information panel */
+.panel{background:var(--blue);color:var(--blue-ink);border-radius:16px;padding:6px}
+.panel-in{border:3px solid rgba(255,255,255,.92);border-radius:11px;padding:18px 16px;display:flex;flex-direction:column;gap:12px}
+.panel h1{font-size:2.3rem;letter-spacing:.01em}
+.panel .facts{display:flex;flex-wrap:wrap;gap:8px}
+.panel .facts span{font-family:var(--display);font-size:1.05rem;font-weight:600;border:2px solid rgba(255,255,255,.85);border-radius:6px;padding:2px 9px;font-variant-numeric:tabular-nums}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;border:1px solid var(--line);background:var(--surface);padding:12px 16px;font-weight:600;min-height:48px;text-align:center}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.panel .btn.primary{background:#fff;color:#0F2F66;border-color:#fff;font-size:1.05rem}
+.btn.full{width:100%}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>.btn{flex:1 1 140px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+.stat b{display:block;font-family:var(--display);font-size:1.8rem;line-height:1;font-variant-numeric:tabular-nums}
+.stat span{font-size:.8rem;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.8rem;font-weight:600;border-radius:999px;padding:3px 10px;border:1px solid var(--line);background:var(--surface);font-variant-numeric:tabular-nums}
+.chip.ok{background:var(--ok-bg);color:var(--ok);border-color:transparent}
+.chip.bad{background:var(--bad-bg);color:var(--bad);border-color:transparent}
+button.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button.chip{padding:7px 12px;font-size:.88rem}
+.bars{display:flex;flex-direction:column;gap:10px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;font-size:.9rem}
+.bar .track{grid-column:1/-1;height:7px;background:var(--sunk);border-radius:99px;overflow:hidden}
+.bar .fill{height:100%;border-radius:99px;background:var(--blue)}
+.bar .fill.low{background:var(--red)} .bar .fill.mid{background:var(--amber)}
+.list{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.item{display:flex;align-items:center;gap:12px;padding:12px 14px;border:0;border-bottom:1px solid var(--line);background:transparent;text-align:left;width:100%}
+.item:last-child{border-bottom:0}
+.item .t{flex:1;min-width:0}
+.item .t b{display:block;font-weight:600}
+.item .t small{color:var(--muted)}
+.sg{width:44px;height:44px;flex:none;display:block}
+.sg.big{width:132px;height:132px;margin:4px auto 0}
+.chev{color:var(--muted);font-size:1.3rem}
+.theory h3{margin-top:4px}
+.theory ul{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.theory li{max-width:65ch}
+.theory strong{color:var(--ink)}
+/* Quiz */
+.qhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.timer{font-family:var(--display);font-size:1.4rem;font-variant-numeric:tabular-nums;padding:2px 10px;border-radius:8px;background:var(--sunk)}
+.timer.warn{background:var(--bad-bg);color:var(--bad)}
+.grid30{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.grid30 button{aspect-ratio:1;max-width:100%;border:1px solid var(--line);background:var(--surface);border-radius:6px;font-size:.72rem;font-weight:600;padding:0;font-variant-numeric:tabular-nums;color:var(--muted)}
+.grid30 button.done{background:var(--sunk);color:var(--ink)}
+.grid30 button.cur{border:2px solid var(--blue);color:var(--blue)}
+.progress{height:6px;background:var(--sunk);border-radius:99px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--blue)}
+.qtext{font-size:1.15rem;font-weight:600;line-height:1.4}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px;min-height:52px;width:100%}
+.opt .k{flex:none;width:28px;height:28px;border-radius:7px;display:grid;place-items:center;font-family:var(--display);font-weight:700;background:var(--sunk)}
+.opt.sel{border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue)}
+.opt.sel .k{background:var(--blue);color:#fff}
+.opt.right{border-color:var(--ok);background:var(--ok-bg)}
+.opt.right .k{background:var(--ok);color:#fff}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.opt.wrong .k{background:var(--bad);color:#fff}
+.explain{border-left:4px solid var(--amber);background:var(--sunk);border-radius:0 10px 10px 0;padding:10px 12px;font-size:.95rem}
+.verdict{text-align:center;padding:22px 16px;border-radius:16px;color:#fff}
+.verdict.pass{background:var(--ok)} .verdict.fail{background:var(--red)}
+.verdict h1{font-size:3rem;letter-spacing:.04em}
+.review{display:flex;flex-direction:column;gap:12px}
+.review .card{display:flex;flex-direction:column;gap:8px}
+.ans{font-size:.92rem;display:flex;gap:8px}
+.ans.ok{color:var(--ok)} .ans.bad{color:var(--bad)}
+.confirm{border:1.5px solid var(--amber);background:var(--sunk);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabs .wrap{display:grid;grid-template-columns:repeat(4,1fr)}
+nav.tabs button{border:0;background:transparent;padding:8px 2px 10px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.75rem;font-weight:600;color:var(--muted)}
+nav.tabs button svg{width:24px;height:24px}
+nav.tabs button[aria-current="page"]{color:var(--blue)}
+.badge{background:var(--red);color:#fff;border-radius:99px;font-size:.65rem;padding:0 6px;margin-left:2px}
+.empty{text-align:center;padding:28px 16px;display:flex;flex-direction:column;gap:10px;align-items:center}
+@media (prefers-reduced-motion: no-preference){.opt,.btn{transition:background-color .15s,border-color .15s}}
+</style>
+
+<header class="top"><div class="wrap">
+  <div class="brand"><div class="plate">B</div><b id="brandName">Carnet B</b></div>
+  <div class="lang" role="group" aria-label="Language">
+    <button id="lang-es" data-lang="0">ES</button><button id="lang-en" data-lang="1">EN</button>
+  </div>
+</div></header>
+<main><div class="wrap" id="view"></div></main>
+<nav class="tabs" aria-label="Sections"><div class="wrap" id="tabs"></div></nav>
+
+<script>
+/* ============ Road-sign drawings (physical sign colours, identical in both themes) ============ */
+const RED='#C1121F',BLUE='#1D5BB8',YEL='#F4B400',BLK='#1A1A1A';
+const sv=(inner,cls='sg')=>`<svg viewBox="0 0 100 100" class="${cls}" aria-hidden="true">${inner}</svg>`;
+const TX=(t,size,fill,y=52)=>`<text x="50" y="${y}" text-anchor="middle" dominant-baseline="central" font-family="'Barlow Condensed','Arial Narrow',Arial,sans-serif" font-weight="700" font-size="${size}" fill="${fill}">${t}</text>`;
+const OCT='68.4,5.6 94.4,31.6 94.4,68.4 68.4,94.4 31.6,94.4 5.6,68.4 5.6,31.6 31.6,5.6';
+const diag=c=>`<g stroke="${c}" stroke-width="3">${[-12,-6,0,6,12].map(o=>`<line x1="${20+o}" y1="${80+o}" x2="${80+o}" y2="${20+o}"/>`).join('')}</g>`;
+const SIG={
+  max:n=>`<circle cx="50" cy="50" r="44" fill="#fff" stroke="${RED}" stroke-width="10"/>`+TX(n,n>99?38:46,BLK),
+  min:n=>`<circle cx="50" cy="50" r="47" fill="${BLUE}"/>`+TX(n,n>99?38:46,'#fff'),
+  adv:n=>`<rect x="6" y="6" width="88" height="88" rx="10" fill="${BLUE}"/>`+TX(n,n>99?40:48,'#fff'),
+  endMax:n=>`<circle cx="50" cy="50" r="45" fill="#fff" stroke="#8A8A8A" stroke-width="4"/>`+TX(n,n>99?38:46,'#8A8A8A')+diag(BLK),
+  stop:()=>`<polygon points="${OCT}" fill="${RED}" stroke="#fff" stroke-width="4"/>`+TX('STOP',30,'#fff',51),
+  yield:()=>`<polygon points="6,12 94,12 50,90" fill="#fff" stroke="${RED}" stroke-width="9" stroke-linejoin="round"/>`,
+  noEntry:()=>`<circle cx="50" cy="50" r="47" fill="${RED}"/><rect x="18" y="41" width="64" height="18" fill="#fff"/>`,
+  closed:()=>`<circle cx="50" cy="50" r="43" fill="#fff" stroke="${RED}" stroke-width="10"/>`,
+  noPark:()=>`<circle cx="50" cy="50" r="43" fill="${BLUE}" stroke="${RED}" stroke-width="10"/><line x1="22" y1="22" x2="78" y2="78" stroke="${RED}" stroke-width="10"/>`,
+  noStop:()=>`<circle cx="50" cy="50" r="43" fill="${BLUE}" stroke="${RED}" stroke-width="10"/><line x1="22" y1="22" x2="78" y2="78" stroke="${RED}" stroke-width="10"/><line x1="78" y1="22" x2="22" y2="78" stroke="${RED}" stroke-width="10"/>`,
+  prio:()=>`<g transform="rotate(45 50 50)"><rect x="19" y="19" width="62" height="62" fill="#fff" stroke="${BLK}" stroke-width="2"/><rect x="28" y="28" width="44" height="44" fill="${YEL}"/></g>`,
+  endPrio:()=>SIG.prio()+`<g stroke="${BLK}" stroke-width="3"><line x1="22" y1="78" x2="78" y2="22"/><line x1="28" y1="82" x2="82" y2="28"/><line x1="18" y1="72" x2="72" y2="18"/></g>`,
+  danger:()=>`<polygon points="50,7 95,88 5,88" fill="#fff" stroke="${RED}" stroke-width="8" stroke-linejoin="round"/>`+TX('!',44,BLK,62),
+  arrow:d=>`<circle cx="50" cy="50" r="47" fill="${BLUE}"/><path d="M50 18 L74 46 H59 V82 H41 V46 H26 Z" fill="#fff" transform="rotate(${d} 50 50)"/>`,
+  endAll:()=>`<circle cx="50" cy="50" r="45" fill="#fff" stroke="#8A8A8A" stroke-width="4"/>`+diag(BLK),
+  noOvertake:()=>`<circle cx="50" cy="50" r="44" fill="#fff" stroke="${RED}" stroke-width="10"/>
+    <rect x="22" y="44" width="24" height="18" rx="4" fill="${RED}"/><rect x="26" y="35" width="16" height="11" rx="3" fill="${RED}"/>
+    <rect x="54" y="44" width="24" height="18" rx="4" fill="${BLK}"/><rect x="58" y="35" width="16" height="11" rx="3" fill="${BLK}"/>
+    <rect x="24" y="62" width="5" height="6" fill="${RED}"/><rect x="39" y="62" width="5" height="6" fill="${RED}"/>
+    <rect x="56" y="62" width="5" height="6" fill="${BLK}"/><rect x="71" y="62" width="5" height="6" fill="${BLK}"/>`,
+  info:(t,bg=BLUE,size=34)=>`<rect x="6" y="6" width="88" height="88" rx="14" fill="${bg}"/><rect x="11" y="11" width="78" height="78" rx="10" fill="none" stroke="#fff" stroke-width="3"/>`+TX(t,size,'#fff'),
+  disc:(t,bg,fg='#fff',size=30)=>`<circle cx="50" cy="50" r="46" fill="${bg}"/>`+TX(t,size,fg),
+  lamp:()=>`<rect x="6" y="6" width="88" height="88" rx="14" fill="${BLUE}"/><path d="M44 30 A20 20 0 0 0 44 70 Z" fill="#fff"/><g stroke="#fff" stroke-width="5" stroke-linecap="round"><line x1="54" y1="34" x2="80" y2="34"/><line x1="54" y1="50" x2="80" y2="50"/><line x1="54" y1="66" x2="80" y2="66"/></g>`,
+  road:()=>`<rect x="6" y="6" width="88" height="88" rx="14" fill="${BLUE}"/><path d="M38 84 L46 16 M62 84 L54 16" stroke="#fff" stroke-width="5"/><path d="M50 80 V68 M50 58 V48 M50 38 V30" stroke="#fff" stroke-width="3"/>`
+};
+const sign=(k,...a)=>sv(SIG[k](...a));
+
+/* ============ Content: theory (each text is [Spanish, English]) ============ */
+const TOPICS=[
+ {id:'per',ic:()=>sign('info','B',BLUE,52),n:['El examen y el permiso B','The exam and the B licence'],s:[
+  [['El examen teórico','The theory exam'],[
+   ['30 preguntas tipo test con 3 respuestas cada una, en 30 minutos.','30 multiple-choice questions with 3 answers each, in 30 minutes.'],
+   ['Apruebas (APTO) con un máximo de 3 fallos. Una pregunta sin contestar cuenta como fallo.','You pass (APTO) with at most 3 mistakes. An unanswered question counts as a mistake.'],
+   ['El teórico aprobado es válido durante 2 años para presentarte al práctico.','A passed theory exam is valid for 2 years to sit the practical test.'],
+   ['La DGT también ofrece el examen en otros idiomas (entre ellos, inglés) en muchos centros; confírmalo en tu Jefatura.','The DGT offers the exam in other languages (including English) at many centres; check with your local Jefatura.']]],
+  [['Qué permite conducir el permiso B','What the B licence lets you drive'],[
+   ['Edad mínima: 18 años.','Minimum age: 18.'],
+   ['Vehículos de hasta 3.500 kg de MMA y hasta 9 plazas incluido el conductor.','Vehicles up to 3,500 kg maximum authorised mass and up to 9 seats including the driver.'],
+   ['Remolque ligero de hasta 750 kg; uno más pesado si el conjunto no supera 3.500 kg.','A light trailer up to 750 kg; a heavier one if the combination does not exceed 3,500 kg.'],
+   ['Con 3 años de antigüedad en España: motocicletas de hasta 125 cc y 11 kW.','After 3 years with the licence in Spain: motorcycles up to 125 cc and 11 kW.'],
+   ['Conductor novel: placa "L" en la parte trasera izquierda durante el primer año.','New driver: "L" plate at the rear left for the first year.'],
+   ['Vigencia: 10 años (5 años a partir de los 65).','Validity: 10 years (5 years from age 65).']]]]},
+ {id:'sig',ic:()=>sign('danger'),n:['Señales y agentes','Signs and police signals'],s:[
+  [['Orden de prioridad entre señales','Which signal wins'],[
+   ['1) Agentes de tráfico, 2) señalización circunstancial (obras, balizas), 3) semáforos, 4) señales verticales, 5) marcas viales.','1) Traffic officers, 2) temporary signs (roadworks, beacons), 3) traffic lights, 4) vertical signs, 5) road markings.'],
+   ['En obras, las marcas amarillas prevalecen sobre las blancas.','In roadworks, yellow markings take precedence over white ones.']]],
+  [['Formas y colores','Shapes and colours'],[
+   ['Triángulo con borde rojo: peligro. Círculo con borde rojo: prohibición. Círculo azul: obligación. Cuadrado o rectángulo azul: indicación.','Triangle with red border: danger. Circle with red border: prohibition. Blue circle: obligation. Blue square or rectangle: information.'],
+   ['STOP (octógono rojo): detención obligatoria y ceder el paso. Ceda el paso (triángulo invertido): ceder sin obligación de parar si no viene nadie.','STOP (red octagon): you must stop and give way. Give way (inverted triangle): yield, no need to stop if the road is clear.'],
+   ['Las señales de fin de prohibición tienen franjas diagonales negras.','End-of-restriction signs have black diagonal stripes.']]],
+  [['Semáforos y agentes','Traffic lights and officers'],[
+   ['Ámbar fijo: detente, salvo que no puedas hacerlo con seguridad. Ámbar intermitente: precaución y respeta las prioridades.','Steady amber: stop unless you cannot do so safely. Flashing amber: proceed with caution and observe priorities.'],
+   ['Brazo levantado verticalmente: se detienen todos los que se aproximan al agente.','Arm raised vertically: everyone approaching the officer must stop.'],
+   ['Brazos extendidos horizontalmente: se detienen quienes se aproximan de frente o por detrás del agente.','Arms extended horizontally: those approaching from the front or behind the officer must stop.']]],
+  [['Marcas viales','Road markings'],[
+   ['Línea continua: no se puede pisar ni rebasar. Discontinua: se puede rebasar para maniobrar.','Solid line: do not drive on or cross it. Broken line: may be crossed to manoeuvre.'],
+   ['Flecha de retorno: se acaba la posibilidad de adelantar; vuelve a tu carril.','Return arrow: overtaking is ending; move back into your lane.'],
+   ['Bordillo amarillo continuo: prohibido parar y estacionar. Discontinuo: prohibido estacionar.','Solid yellow kerb line: no stopping or parking. Broken: no parking.']]]]},
+ {id:'vel',ic:()=>sign('max',90),n:['Velocidad y distancias','Speed and distances'],s:[
+  [['Límites genéricos para turismos','General limits for cars'],[
+   ['Autopista y autovía: 120 km/h. Velocidad mínima: 60 km/h.','Motorway and dual carriageway: 120 km/h. Minimum speed: 60 km/h.'],
+   ['Carretera convencional: 90 km/h.','Conventional road: 90 km/h.'],
+   ['Vía urbana con 2 o más carriles por sentido y travesías: 50 km/h. Un carril por sentido: 30 km/h. Plataforma única (acera y calzada al mismo nivel): 20 km/h.','Urban roads with 2+ lanes per direction and travesías: 50 km/h. One lane per direction: 30 km/h. Single-surface streets: 20 km/h.'],
+   ['Ya no se puede superar el límite en 20 km/h para adelantar (eliminado en 2019).','You may no longer exceed the limit by 20 km/h to overtake (abolished in 2019).']]],
+  [['Distancias','Distances'],[
+   ['Distancia de detención = distancia de reacción + distancia de frenado.','Stopping distance = reaction distance + braking distance.'],
+   ['Reacción: con 1 segundo recorres la velocidad / 3,6 metros (≈ 28 m a 100 km/h).','Reaction: in 1 second you travel speed / 3.6 metres (≈ 28 m at 100 km/h).'],
+   ['Frenado en seco aproximado: (velocidad / 10)². Si duplicas la velocidad, se multiplica por 4.','Approximate dry braking: (speed / 10)². Double the speed and it multiplies by 4.'],
+   ['Regla de los 2 segundos con el vehículo de delante; más con lluvia, niebla o noche.','Keep 2 seconds behind the vehicle in front; more in rain, fog or at night.'],
+   ['En túneles: al menos 100 m o 4 segundos (turismos).','In tunnels: at least 100 m or 4 seconds (cars).']]]]},
+ {id:'pri',ic:()=>sign('yield'),n:['Prioridad de paso','Right of way'],s:[
+  [['Reglas básicas','Basic rules'],[
+   ['Intersección sin señalizar: preferencia de los que vienen por la derecha.','Unsigned junction: vehicles coming from the right have priority.'],
+   ['Excepciones: la vía pavimentada sobre la no pavimentada, los vehículos sobre raíles, y quien circula dentro de una glorieta.','Exceptions: paved roads over unpaved, rail vehicles, and traffic already inside a roundabout.'],
+   ['Al salir de un garaje o propiedad, cedes el paso a todos.','Leaving a garage or property, you give way to everyone.']]],
+  [['Estrechamientos y pendientes','Narrow sections and slopes'],[
+   ['Estrechamiento sin señal: pasa primero el que haya entrado antes.','Unsigned narrowing: whoever entered first goes first.'],
+   ['Tramo estrecho de gran pendiente: preferencia del que sube.','Narrow steep section: the vehicle going uphill has priority.']]],
+  [['Peatones y emergencias','Pedestrians and emergencies'],[
+   ['Cede el paso a los peatones en pasos de peatones y al girar hacia una calle por la que cruzan.','Give way to pedestrians on zebra crossings and when turning into a street they are crossing.'],
+   ['Vehículos de emergencia con señales luminosas y acústicas: facilita el paso apartándote a la derecha o deteniéndote.','Emergency vehicles with lights and siren: let them pass by moving right or stopping.']]]]},
+ {id:'man',ic:()=>sign('arrow',-90),n:['Maniobras y adelantamientos','Manoeuvres and overtaking'],s:[
+  [['Adelantamiento','Overtaking'],[
+   ['Se adelanta por la izquierda. Por la derecha solo si el de delante va a girar a la izquierda y se ha desplazado, o en poblado con carriles marcados.','Overtake on the left. On the right only if the vehicle ahead is turning left and has moved over, or in town with marked lanes.'],
+   ['Prohibido en curvas y cambios de rasante con visibilidad insuficiente, pasos de peatones, pasos a nivel e intersecciones (con excepciones).','Forbidden on bends and hill crests with poor visibility, at zebra crossings, level crossings and junctions (with exceptions).'],
+   ['A ciclistas: al menos 1,5 m de separación lateral; en vías con 2 o más carriles por sentido, cambia completamente de carril.','Cyclists: at least 1.5 m lateral distance; on roads with 2+ lanes per direction, change lanes completely.'],
+   ['Quien es adelantado no debe acelerar y debe ceñirse a la derecha.','The vehicle being overtaken must not speed up and should keep right.']]],
+  [['Otras maniobras','Other manoeuvres'],[
+   ['Marcha atrás: máximo 15 m y sin invadir un cruce. Prohibida en autopistas y autovías.','Reversing: maximum 15 m and never into a junction. Forbidden on motorways and dual carriageways.'],
+   ['Cambio de sentido prohibido en túneles, curvas, cambios de rasante y pasos de peatones.','U-turns are forbidden in tunnels, on bends, hill crests and zebra crossings.'],
+   ['Girar a la izquierda en vía de doble sentido: cíñete al eje de la calzada.','Turning left on a two-way road: keep close to the centre line.'],
+   ['Incorporación a autopista: usa el carril de aceleración y cede el paso a quienes ya circulan.','Joining a motorway: use the acceleration lane and give way to traffic already on it.']]]]},
+ {id:'par',ic:()=>sign('noPark'),n:['Parada y estacionamiento','Stopping and parking'],s:[
+  [['Definiciones','Definitions'],[
+   ['Parada: inmovilización inferior a 2 minutos sin que el conductor abandone el vehículo. Más tiempo o salir del coche es estacionar.','Stopping: under 2 minutes without the driver leaving. Longer, or leaving the car, is parking.']]],
+  [['Dónde no','Where not to'],[
+   ['Prohibido estacionar en pasos de peatones, carriles bus y bici, vados, paradas de transporte, plazas reservadas y en doble fila.','No parking on zebra crossings, bus and cycle lanes, in front of driveways, at public transport stops, in reserved spaces or double-parked.'],
+   ['En pendiente: freno de mano, marcha engranada y ruedas giradas hacia el bordillo (cuesta abajo).','On a slope: handbrake, gear engaged and wheels turned towards the kerb (downhill).']]]]},
+ {id:'luz',ic:()=>sign('lamp'),n:['Alumbrado y visibilidad','Lights and visibility'],s:[
+  [['Cuándo usar cada luz','Which light, when'],[
+   ['Cruce (cortas): de noche en vías iluminadas, al cruzarte con otros y siempre en túneles, aunque estén iluminados.','Dipped beam: at night on lit roads, when meeting other vehicles and always in tunnels, even lit ones.'],
+   ['Carretera (largas): fuera de poblado y vías sin iluminar, sin deslumbrar a nadie.','Main beam: outside towns on unlit roads, without dazzling anyone.'],
+   ['Antiniebla trasera: solo con niebla densa, lluvia o nieve muy intensas, o nubes de polvo o humo.','Rear fog light: only in dense fog, very heavy rain or snow, or dust or smoke clouds.'],
+   ['Con niebla nunca uses largas: la luz se refleja y ves menos.','Never use main beam in fog: the light reflects back and you see less.']]],
+  [['Deslumbramiento','Glare'],[
+   ['Reduce la velocidad y mira hacia el borde derecho de la calzada.','Slow down and look towards the right edge of the road.']]]]},
+ {id:'alc',ic:()=>sign('disc','0,25',RED,'#fff',30),n:['Alcohol, drogas y factores humanos','Alcohol, drugs and human factors'],s:[
+  [['Tasas máximas de alcohol','Alcohol limits'],[
+   ['General: 0,5 g/l en sangre o 0,25 mg/l en aire espirado.','General: 0.5 g/l in blood or 0.25 mg/l in exhaled air.'],
+   ['Noveles (menos de 2 años) y profesionales: 0,3 g/l en sangre o 0,15 mg/l en aire.','New drivers (under 2 years) and professionals: 0.3 g/l blood or 0.15 mg/l air.'],
+   ['Más de 0,60 mg/l en aire (1,2 g/l en sangre) es delito. Negarse a la prueba también es delito.','Over 0.60 mg/l air (1.2 g/l blood) is a crime. Refusing the test is also a crime.'],
+   ['Solo el tiempo elimina el alcohol; ni el café ni una ducha ayudan.','Only time removes alcohol; coffee or a shower do not help.']]],
+  [['Drogas, fármacos y fatiga','Drugs, medicines and fatigue'],[
+   ['Conducir con presencia de drogas: 6 puntos y 1.000 €, sea cual sea la cantidad.','Driving with drugs in your system: 6 points and €1,000, whatever the amount.'],
+   ['Medicamentos con el pictograma de un coche dentro de un triángulo pueden afectar a la conducción.','Medicines showing a car inside a triangle can affect your driving.'],
+   ['Descansa cada 2 horas o 200 km. La velocidad estrecha el campo visual (efecto túnel).','Rest every 2 hours or 200 km. Speed narrows your field of vision (tunnel effect).']]]]},
+ {id:'seg',ic:()=>sign('info','SRI',BLUE,34),n:['Seguridad pasiva y usuarios vulnerables','Passive safety and vulnerable users'],s:[
+  [['Cinturón y niños','Seat belts and children'],[
+   ['Cinturón obligatorio en todas las plazas, delanteras y traseras.','Seat belts are compulsory in every seat, front and rear.'],
+   ['Menores de 135 cm: sistema de retención infantil (SRI) homologado y en los asientos traseros, salvo excepciones.','Children under 135 cm: approved child restraint (SRI) and in the rear seats, with some exceptions.'],
+   ['SRI a contramarcha en el asiento delantero: desactiva el airbag frontal.','Rear-facing child seat in the front: switch off the front airbag.'],
+   ['Reposacabezas: el borde superior a la altura de la parte superior de la cabeza.','Head restraint: top edge level with the top of the head.']]],
+  [['Peatones, ciclistas y motoristas','Pedestrians, cyclists and riders'],[
+   ['Peatones en vía sin acera: por la izquierda; fuera de poblado de noche, con chaleco reflectante.','Pedestrians on roads without pavement walk on the left; outside towns at night, wearing a reflective vest.'],
+   ['Los ciclistas pueden circular en paralelo, en columna de a dos.','Cyclists may ride two abreast.'],
+   ['Casco obligatorio en motos y ciclomotores en todas las vías.','Helmets are compulsory on motorcycles and mopeds on all roads.']]]]},
+ {id:'veh',ic:()=>sign('info','ITV',BLUE,32),n:['Vehículo y mantenimiento','Vehicle and maintenance'],s:[
+  [['Revisiones','Checks'],[
+   ['ITV de turismos: primera a los 4 años, cada 2 años hasta los 10, y después anual.','Car MOT (ITV): first at 4 years, every 2 years until 10, then yearly.'],
+   ['Neumáticos: dibujo mínimo de 1,6 mm. Presión comprobada en frío.','Tyres: minimum tread depth 1.6 mm. Check pressure when cold.'],
+   ['Aceite: con el motor parado y frío, en llano.','Oil: engine off and cold, on level ground.'],
+   ['Testigo rojo encendido: avería grave, detente en cuanto puedas hacerlo con seguridad.','Red warning light: serious fault, stop as soon as it is safe.']]],
+  [['Frenos y seguro','Brakes and insurance'],[
+   ['Con ABS, en emergencia pisa el freno a fondo y mantenlo; puedes seguir girando el volante.','With ABS, in an emergency press the brake hard and hold it; you can still steer.'],
+   ['El seguro de responsabilidad civil es obligatorio.','Third-party liability insurance is compulsory.']]]]},
+ {id:'via',ic:()=>sign('road'),n:['Autopistas, túneles y condiciones adversas','Motorways, tunnels and bad conditions'],s:[
+  [['Autopistas y túneles','Motorways and tunnels'],[
+   ['En autopistas están prohibidas bicicletas, peatones y la marcha atrás.','Bicycles, pedestrians and reversing are forbidden on motorways.'],
+   ['En túneles: cortas encendidas, sin cambio de sentido ni marcha atrás; 100 m o 4 s de distancia.','In tunnels: dipped beam on, no U-turns or reversing; keep 100 m or 4 s.']]],
+  [['Clima','Weather'],[
+   ['Aquaplaning: suelta el acelerador, sujeta firme el volante y no frenes bruscamente.','Aquaplaning: ease off the accelerator, hold the wheel firmly and don\'t brake hard.'],
+   ['Cadenas: en las ruedas motrices.','Snow chains go on the drive wheels.'],
+   ['Viento lateral: reduce la velocidad y sujeta el volante con firmeza.','Crosswinds: slow down and hold the wheel firmly.'],
+   ['Bajadas largas: freno motor, con la misma marcha que usarías para subir.','Long descents: use engine braking, in the gear you would use to climb.']]]]},
+ {id:'acc',ic:()=>sign('disc','V16','#F28C00','#fff',32),n:['Accidentes y primeros auxilios','Accidents and first aid'],s:[
+  [['Qué hacer','What to do'],[
+   ['Conducta PAS: Proteger, Avisar (112) y Socorrer.','PAS: Protect, Alert (112) and Help.'],
+   ['Desde el 1 de enero de 2026 la baliza V-16 conectada sustituye a los triángulos. Ponte el chaleco antes de salir del coche.','Since 1 January 2026 the connected V-16 beacon replaces warning triangles. Put on your vest before leaving the car.'],
+   ['Si te ves implicado en un accidente debes detenerte, ayudar y facilitar tu identidad.','If involved in an accident you must stop, help and give your details.']]],
+  [['Primeros auxilios','First aid'],[
+   ['No muevas a los heridos salvo peligro inminente (fuego, atropello). No quites el casco a un motorista.','Don\'t move the injured unless in immediate danger (fire, traffic). Never remove a rider\'s helmet.'],
+   ['Inconsciente que respira: posición lateral de seguridad. No respira: RCP, 30 compresiones y 2 ventilaciones.','Unconscious and breathing: recovery position. Not breathing: CPR, 30 compressions and 2 breaths.'],
+   ['Hemorragia: presión directa sobre la herida. Quemaduras: agua fresca, sin reventar ampollas.','Bleeding: direct pressure on the wound. Burns: cool water, don\'t burst blisters.']]]]},
+ {id:'pts',ic:()=>sign('info','15',BLUE,46),n:['Permiso por puntos y sanciones','Points and penalties'],s:[
+  [['El saldo','Your balance'],[
+   ['Empiezas con 8 puntos; tras 2 años sin perder puntos pasas a 12. Máximo: 15.','You start with 8 points; after 2 years without losing any you get 12. Maximum: 15.'],
+   ['Si pierdes todos los puntos, el permiso pierde su vigencia.','Lose all your points and the licence is no longer valid.']]],
+  [['Infracciones frecuentes','Common offences'],[
+   ['6 puntos: móvil en la mano, drogas, alcohol por encima de 0,50 mg/l en aire, inhibidores de radar, adelantar a ciclistas poniéndolos en peligro.','6 points: holding a phone, drugs, alcohol over 0.50 mg/l air, radar jammers, overtaking cyclists dangerously.'],
+   ['4 puntos: no usar cinturón, casco o SRI; saltarse un semáforo rojo o un STOP; alcohol entre 0,25 y 0,50 mg/l.','4 points: no seat belt, helmet or child seat; running a red light or STOP; alcohol between 0.25 and 0.50 mg/l.'],
+   ['Exceder en más de 60 km/h en vía urbana u 80 km/h en interurbana es delito.','Exceeding the limit by more than 60 km/h in town or 80 km/h elsewhere is a crime.'],
+   ['Pronto pago: 50 % de descuento si pagas en 20 días naturales.','Early payment: 50% off if you pay within 20 calendar days.']]]]},
+ {id:'env',ic:()=>sign('disc','ECO','#1E8A4C','#fff',30),n:['Conducción eficiente y medio ambiente','Eco-driving and environment'],s:[
+  [['Conducción eficiente','Efficient driving'],[
+   ['Cambia de marcha a 2.000–2.500 rpm (gasolina) o 1.500–2.000 rpm (diésel).','Shift up at 2,000–2,500 rpm (petrol) or 1,500–2,000 rpm (diesel).'],
+   ['Presión baja de neumáticos y bacas vacías aumentan el consumo.','Low tyre pressure and empty roof racks increase consumption.'],
+   ['Apaga el motor en paradas de más de 1 minuto.','Switch the engine off for stops longer than 1 minute.']]],
+  [['Etiquetas y ZBE','Labels and low-emission zones'],[
+   ['Etiquetas DGT: 0 (azul, eléctricos), ECO (híbridos y gas), C (verde) y B (amarilla).','DGT labels: 0 (blue, electric), ECO (hybrids and gas), C (green) and B (yellow).'],
+   ['Los municipios de más de 50.000 habitantes deben tener zonas de bajas emisiones (ZBE).','Towns with over 50,000 inhabitants must have low-emission zones (ZBE).']]]]}
+];
+const TOPIC=Object.fromEntries(TOPICS.map(t=>[t.id,t]));
+
+/* ============ Question bank: o[0] is always the correct answer; options are shuffled at runtime ============ */
+const BANK=[
+ {t:'per',q:['¿Cuántas preguntas tiene el examen teórico del permiso B y cuántos fallos se permiten?','How many questions does the B theory exam have, and how many mistakes are allowed?'],o:[['30 preguntas, máximo 3 fallos','30 questions, up to 3 mistakes'],['40 preguntas, máximo 4 fallos','40 questions, up to 4 mistakes'],['30 preguntas, máximo 5 fallos','30 questions, up to 5 mistakes']],x:['30 preguntas en 30 minutos; APTO con 3 fallos o menos.','30 questions in 30 minutes; you pass with 3 mistakes or fewer.']},
+ {t:'per',q:['¿Cuál es la MMA máxima de un vehículo que puedes conducir con el permiso B?','What is the maximum authorised mass of a vehicle you can drive with a B licence?'],o:[['3.500 kg','3,500 kg'],['4.250 kg','4,250 kg'],['7.500 kg','7,500 kg']],x:['El permiso B autoriza vehículos de hasta 3.500 kg de MMA.','The B licence covers vehicles up to 3,500 kg MAM.']},
+ {t:'per',q:['¿Cuántas plazas, incluido el conductor, puede tener como máximo un vehículo conducido con permiso B?','How many seats, including the driver, can a vehicle driven on a B licence have at most?'],o:[['9','9'],['8','8'],['12','12']],x:['Hasta 9 plazas incluida la del conductor.','Up to 9 seats including the driver\'s.']},
+ {t:'per',q:['Con el permiso B, ¿qué remolque puedes llevar sin más requisitos?','With a B licence, which trailer can you tow without further requirements?'],o:[['Uno de hasta 750 kg de MMA','One up to 750 kg MAM'],['Uno de hasta 1.500 kg de MMA','One up to 1,500 kg MAM'],['Ninguno','None']],x:['Remolque ligero de hasta 750 kg; uno más pesado si el conjunto no supera 3.500 kg.','A light trailer up to 750 kg; heavier if the combination stays within 3,500 kg.']},
+ {t:'per',q:['¿Durante cuánto tiempo debe llevar la placa "L" un conductor novel?','How long must a new driver display the "L" plate?'],o:[['1 año','1 year'],['2 años','2 years'],['6 meses','6 months']],x:['Placa L en la parte trasera izquierda durante el primer año.','L plate at the rear left during the first year.']},
+ {t:'per',q:['¿Cuánto tiempo es válido el examen teórico aprobado?','How long is a passed theory exam valid?'],o:[['2 años','2 years'],['1 año','1 year'],['6 meses','6 months']],x:['Tienes 2 años para aprobar el práctico.','You have 2 years to pass the practical test.']},
+ {t:'per',q:['Un conductor de 40 años renueva el permiso B. ¿Por cuántos años?','A 40-year-old driver renews their B licence. For how many years?'],o:[['10 años','10 years'],['5 años','5 years'],['15 años','15 years']],x:['10 años hasta los 65; después, 5.','10 years until 65; then 5.']},
+ {t:'per',q:['Con 3 años de antigüedad del permiso B en España, ¿qué motos puedes conducir?','After 3 years with a B licence in Spain, which motorcycles can you ride?'],o:[['Hasta 125 cc y 11 kW','Up to 125 cc and 11 kW'],['Cualquier motocicleta','Any motorcycle'],['Ninguna, necesitas el A2','None, you need A2']],x:['Es una equivalencia válida solo en España.','This equivalence is only valid in Spain.']},
+
+ {t:'sig',q:['Un agente te indica que avances, pero el semáforo está en rojo. ¿Qué haces?','An officer signals you to proceed but the light is red. What do you do?'],o:[['Avanzo: prevalece el agente','Proceed: the officer prevails'],['Espero al verde','Wait for green'],['Sigo la señal vertical','Follow the vertical sign']],x:['Las indicaciones de los agentes prevalecen sobre cualquier otra señal.','Officers\' instructions override every other signal.']},
+ {t:'sig',q:['Un semáforo pasa a ámbar fijo cuando estás cerca. ¿Qué debes hacer?','A light turns steady amber as you approach. What must you do?'],o:[['Detenerme, salvo que no pueda hacerlo con seguridad','Stop, unless I cannot do so safely'],['Acelerar para pasar antes del rojo','Speed up to beat the red'],['Lo mismo que con verde','The same as with green']],x:['El ámbar fijo obliga a detenerse si es posible con seguridad.','Steady amber means stop if you can safely.']},
+ {t:'sig',q:['¿Qué significa un semáforo ámbar intermitente?','What does a flashing amber light mean?'],o:[['Precaución, respetando las normas de prioridad','Caution, observing priority rules'],['Detención obligatoria','Mandatory stop'],['Tengo siempre preferencia','I always have priority']],x:['Permite pasar con precaución y cediendo cuando corresponda.','You may proceed carefully, giving way where required.']},
+ {t:'sig',q:['Un agente levanta un brazo verticalmente. ¿A quién afecta?','An officer raises one arm vertically. Who does it affect?'],o:[['A todos los que se aproximan, que deben detenerse','Everyone approaching, who must stop'],['Solo a los que vienen de frente','Only those coming from the front'],['A nadie, es un saludo','Nobody, it is a greeting']],x:['Excepto quienes no puedan detenerse con seguridad.','Except those who cannot stop safely.']},
+ {t:'sig',q:['Un agente tiene los brazos extendidos horizontalmente. ¿Quién debe detenerse?','An officer has both arms stretched out horizontally. Who must stop?'],o:[['Los que se aproximan de frente o por detrás del agente','Those approaching from the front or behind the officer'],['Los que vienen por los lados','Those coming from the sides'],['Nadie','Nobody']],x:['Se detienen quienes se acercan en direcciones que cortan la de los brazos.','Traffic approaching across the line of the arms must stop.']},
+ {t:'sig',q:['¿Qué indica una línea longitudinal continua?','What does a solid longitudinal line mean?'],o:[['No se puede pisar ni rebasar','You may not drive on or cross it'],['Se puede rebasar para adelantar','You may cross it to overtake'],['Solo prohíbe estacionar','It only forbids parking']],x:['La línea continua no se puede rebasar.','A solid line must not be crossed.']},
+ {t:'sig',q:['¿Qué significa una línea amarilla continua junto al bordillo?','What does a solid yellow line along the kerb mean?'],o:[['Prohibida la parada y el estacionamiento','No stopping or parking'],['Prohibido solo estacionar','Only parking forbidden'],['Zona de carga y descarga','Loading zone']],x:['Discontinua: solo prohíbe estacionar.','A broken yellow line only forbids parking.']},
+ {t:'sig',q:['¿Qué significa una línea amarilla discontinua junto al bordillo?','What does a broken yellow line along the kerb mean?'],o:[['Prohibido estacionar, pero se permite la parada','No parking, but stopping is allowed'],['Prohibida la parada y el estacionamiento','No stopping or parking'],['Estacionamiento libre','Free parking']],x:['La continua prohíbe también la parada.','The solid line also forbids stopping.']},
+ {t:'sig',q:['¿Qué indican, en general, las señales triangulares con borde rojo?','What do triangular signs with a red border generally indicate?'],o:[['Peligro','Danger'],['Prohibición','Prohibition'],['Obligación','Obligation']],x:['Prohibición: círculo con borde rojo. Obligación: círculo azul.','Prohibition: red-bordered circle. Obligation: blue circle.']},
+ {t:'sig',q:['¿Qué indican las señales circulares con fondo azul?','What do round signs with a blue background indicate?'],o:[['Obligación','Obligation'],['Información','Information'],['Prohibición','Prohibition']],x:['Las informativas suelen ser cuadradas o rectangulares.','Information signs are usually square or rectangular.']},
+ {t:'sig',q:['En una zona de obras hay marcas viales blancas y amarillas contradictorias. ¿Cuáles sigues?','In roadworks, white and yellow markings contradict each other. Which do you follow?'],o:[['Las amarillas','The yellow ones'],['Las blancas','The white ones'],['Ninguna','Neither']],x:['Las marcas amarillas son provisionales y prevalecen.','Yellow markings are temporary and take precedence.']},
+ {t:'sig',q:['¿Qué indica una flecha curvada pintada en tu carril antes de una línea continua?','What does a curved arrow painted in your lane before a solid line mean?'],o:[['Que debes volver a tu carril: se acaba la zona de adelantamiento','Return to your lane: the overtaking zone is ending'],['Que puedes adelantar','You may overtake'],['Un desvío obligatorio','A mandatory detour']],x:['Es la flecha de retorno.','It is the return arrow.']},
+ {t:'sig',q:['Un peatón espera para cruzar en un paso de peatones sin semáforo. ¿Qué haces?','A pedestrian is waiting at a zebra crossing without lights. What do you do?'],o:[['Detenerme y cederle el paso','Stop and let them cross'],['Avisar con el claxon y pasar','Sound the horn and continue'],['Pasar si llevo prisa','Continue if I am in a hurry']],x:['Los peatones tienen prioridad en los pasos señalizados.','Pedestrians have priority on marked crossings.']},
+
+ {t:'vel',q:['¿Cuál es la velocidad máxima de un turismo en una carretera convencional?','What is the speed limit for a car on a conventional road?'],o:[['90 km/h','90 km/h'],['100 km/h','100 km/h'],['80 km/h','80 km/h']],x:['Desde 2019, 90 km/h en todas las convencionales.','Since 2019, 90 km/h on all conventional roads.']},
+ {t:'vel',q:['Para adelantar en una carretera convencional, ¿puedes superar el límite de velocidad?','To overtake on a conventional road, may you exceed the speed limit?'],o:[['No, nunca','No, never'],['Sí, en 20 km/h','Yes, by 20 km/h'],['Sí, si adelanto a un camión','Yes, when overtaking a lorry']],x:['La tolerancia de +20 km/h se eliminó en 2019.','The +20 km/h allowance was abolished in 2019.']},
+ {t:'vel',q:['¿Cuál es la velocidad mínima en autopistas y autovías?','What is the minimum speed on motorways and dual carriageways?'],o:[['60 km/h','60 km/h'],['50 km/h','50 km/h'],['80 km/h','80 km/h']],x:['Circular más despacio sin causa justificada es infracción.','Driving slower without good reason is an offence.']},
+ {t:'vel',q:['¿Qué es la distancia de detención?','What is stopping distance?'],o:[['La suma de la distancia de reacción y la de frenado','Reaction distance plus braking distance'],['Solo la distancia de frenado','Braking distance only'],['El doble de la distancia de reacción','Twice the reaction distance']],x:['Incluye lo recorrido mientras reaccionas y mientras frenas.','It includes the distance covered while reacting and while braking.']},
+ {t:'vel',q:['¿Qué aumenta la distancia de frenado?','What increases braking distance?'],o:[['La calzada mojada','A wet road'],['Unos neumáticos nuevos','New tyres'],['Circular más despacio','Driving more slowly']],x:['Menos adherencia significa más metros para detenerse.','Less grip means more metres to stop.']},
+ {t:'vel',q:['¿Qué distancia mínima debe guardar un turismo en un túnel?','What minimum gap must a car keep in a tunnel?'],o:[['100 m o 4 segundos','100 m or 4 seconds'],['50 m o 2 segundos','50 m or 2 seconds'],['150 m o 6 segundos','150 m or 6 seconds']],x:['150 m o 6 s es para vehículos de más de 3.500 kg.','150 m or 6 s applies to vehicles over 3,500 kg.']},
+ {t:'vel',q:['Al aumentar la velocidad, ¿qué le pasa a tu campo visual?','As speed increases, what happens to your field of vision?'],o:[['Se estrecha (efecto túnel)','It narrows (tunnel effect)'],['Se amplía','It widens'],['No cambia','It doesn\'t change']],x:['A más velocidad, menos visión periférica.','More speed, less peripheral vision.']},
+
+ {t:'pri',q:['En una intersección sin señalizar, ¿quién tiene preferencia?','At an unsigned junction, who has priority?'],o:[['Quien se aproxima por la derecha','Whoever approaches from the right'],['Quien se aproxima por la izquierda','Whoever approaches from the left'],['El vehículo más grande','The larger vehicle']],x:['Regla general de prioridad a la derecha.','General rule: priority to the right.']},
+ {t:'pri',q:['En una glorieta, ¿quién tiene preferencia?','At a roundabout, who has priority?'],o:[['Quien ya circula dentro de la glorieta','Traffic already on the roundabout'],['Quien entra','Traffic entering'],['Quien viene por la derecha','Traffic from the right']],x:['Salvo señalización en contrario.','Unless signs say otherwise.']},
+ {t:'pri',q:['Se acerca una ambulancia con luces y sirena. ¿Qué haces?','An ambulance approaches with lights and siren. What do you do?'],o:[['Facilitar el paso apartándome a la derecha o deteniéndome','Make way by moving right or stopping'],['Mantener mi velocidad y trayectoria','Keep my speed and line'],['Frenar en seco en mi carril','Brake hard in my lane']],x:['Hazlo con antelación y sin maniobras bruscas.','Do it early and without sudden moves.']},
+ {t:'pri',q:['Giras a la derecha y hay peatones cruzando la calle en la que entras. ¿Quién pasa?','You turn right and pedestrians are crossing the street you are entering. Who goes?'],o:[['Los peatones','The pedestrians'],['Yo, porque circulo por la calzada','Me, because I am on the road'],['Quien llegue antes','Whoever arrives first']],x:['Aunque no haya paso de peatones, cede el paso.','Give way even if there is no zebra crossing.']},
+ {t:'pri',q:['En un estrechamiento sin señalizar, ¿quién pasa primero?','At an unsigned narrowing, who goes first?'],o:[['El que haya entrado primero','Whoever entered first'],['El que circule más rápido','The faster vehicle'],['El que venga por la derecha','The one coming from the right']],x:['Si hay duda, el que tenga más dificultad para maniobrar.','If in doubt, the vehicle that finds it harder to manoeuvre.']},
+ {t:'pri',q:['En un tramo estrecho con mucha pendiente, sin señalizar, ¿quién tiene preferencia?','On a narrow, steep, unsigned stretch, who has priority?'],o:[['El que sube','The vehicle going uphill'],['El que baja','The vehicle going downhill'],['Ninguno','Neither']],x:['Salvo que el que sube tenga un apartadero cerca.','Unless the uphill vehicle has a passing place nearby.']},
+ {t:'pri',q:['Llegas a una carretera asfaltada desde un camino de tierra, sin señales. ¿Quién tiene preferencia?','You reach a paved road from a dirt track, no signs. Who has priority?'],o:[['Los que circulan por la vía pavimentada','Traffic on the paved road'],['Yo, si vengo por la derecha','Me, if I come from the right'],['Quien llegue primero','Whoever arrives first']],x:['Es una excepción a la prioridad a la derecha.','It is an exception to priority to the right.']},
+ {t:'pri',q:['Sales de un garaje a la vía pública. ¿A quién cedes el paso?','You are leaving a garage onto the road. Whom do you give way to?'],o:[['A todos: peatones y vehículos','Everyone: pedestrians and vehicles'],['Solo a los vehículos','Only vehicles'],['A nadie si señalizo','Nobody if I signal']],x:['Quien se incorpora desde un inmueble cede siempre.','Leaving a property, you always give way.']},
+
+ {t:'man',q:['¿Cuál es la distancia máxima que puedes recorrer marcha atrás?','What is the maximum distance you may reverse?'],o:[['15 metros, sin invadir un cruce','15 metres, without entering a junction'],['50 metros','50 metres'],['No hay límite','There is no limit']],x:['Solo como maniobra complementaria y lo imprescindible.','Only as a complementary manoeuvre and no more than needed.']},
+ {t:'man',q:['Te has pasado la salida en una autovía. ¿Puedes dar marcha atrás por el arcén?','You missed your exit on a dual carriageway. May you reverse along the hard shoulder?'],o:[['No, está prohibido','No, it is forbidden'],['Sí, con los warning encendidos','Yes, with hazard lights on'],['Sí, si no viene nadie','Yes, if no one is coming']],x:['Continúa hasta la siguiente salida.','Continue to the next exit.']},
+ {t:'man',q:['¿Qué separación lateral mínima debes dejar al adelantar a un ciclista?','What minimum lateral gap must you leave when overtaking a cyclist?'],o:[['1,5 metros','1.5 metres'],['1 metro','1 metre'],['0,5 metros','0.5 metres']],x:['Y en vías con 2 o más carriles por sentido, cambia de carril.','And on roads with 2+ lanes per direction, change lanes.']},
+ {t:'man',q:['En una autovía de dos carriles por sentido adelantas a un ciclista que va por el arcén. ¿Cómo?','On a two-lane dual carriageway you overtake a cyclist on the shoulder. How?'],o:[['Cambiando completamente al carril izquierdo','Moving completely into the left lane'],['Basta con dejar 1,5 m','Leaving 1.5 m is enough'],['Está prohibido adelantar ciclistas','Overtaking cyclists is forbidden']],x:['Obligatorio desde 2021.','Mandatory since 2021.']},
+ {t:'man',q:['¿Cuándo puedes adelantar por la derecha fuera de poblado?','When may you overtake on the right outside towns?'],o:[['Cuando el de delante ha señalizado y se ha desplazado para girar a la izquierda','When the vehicle ahead has signalled and moved over to turn left'],['Cuando el de delante va lento','When the vehicle ahead is slow'],['Siempre en autopista','Always on motorways']],x:['La norma general es adelantar por la izquierda.','The general rule is to overtake on the left.']},
+ {t:'man',q:['Te están adelantando. ¿Qué debes hacer?','You are being overtaken. What should you do?'],o:[['Ceñirme a la derecha y no aumentar la velocidad','Keep right and not speed up'],['Acelerar para que termine antes','Speed up so it ends sooner'],['Frenar bruscamente','Brake sharply']],x:['Facilita la maniobra.','Make the manoeuvre easier.']},
+ {t:'man',q:['¿Dónde está prohibido adelantar?','Where is overtaking forbidden?'],o:[['En curvas y cambios de rasante con visibilidad insuficiente','On bends and hill crests with poor visibility'],['En rectas con buena visibilidad','On straight roads with good visibility'],['En autovías','On dual carriageways']],x:['También en pasos de peatones y pasos a nivel.','Also at zebra and level crossings.']},
+ {t:'man',q:['¿Dónde está prohibido el cambio de sentido?','Where are U-turns forbidden?'],o:[['En túneles','In tunnels'],['En lugares habilitados para ello','In places designed for it'],['En glorietas','At roundabouts']],x:['También en curvas, cambios de rasante y pasos de peatones.','Also on bends, hill crests and zebra crossings.']},
+ {t:'man',q:['Vas a girar a la izquierda en una vía de doble sentido. ¿Cómo te colocas?','You are turning left on a two-way road. Where do you position yourself?'],o:[['Lo más cerca posible del eje de la calzada','As close as possible to the centre line'],['Pegado al borde derecho','Close to the right edge'],['En el arcén','On the shoulder']],x:['Sin invadir el sentido contrario.','Without entering the opposite lane.']},
+ {t:'man',q:['¿Cómo te incorporas a una autopista desde un carril de aceleración?','How do you join a motorway from an acceleration lane?'],o:[['Adaptando la velocidad y cediendo el paso a quien circula por ella','Matching speed and giving way to traffic already on it'],['Con preferencia, porque me incorporo','With priority, because I am joining'],['Deteniéndome siempre al final del carril','Always stopping at the end of the lane']],x:['Detenerse solo si no hay hueco.','Stop only if there is no gap.']},
+
+ {t:'par',q:['¿Qué es una parada?','What is a "stop" (parada)?'],o:[['Inmovilización de menos de 2 minutos sin que el conductor abandone el vehículo','Standing still under 2 minutes without the driver leaving'],['Inmovilización de menos de 5 minutos','Standing still under 5 minutes'],['Inmovilización de menos de 10 minutos con el conductor fuera','Under 10 minutes with the driver outside']],x:['Si dura más o sales del coche, es estacionamiento.','Longer, or if you get out, it is parking.']},
+ {t:'par',q:['¿Dónde está prohibido estacionar?','Where is parking forbidden?'],o:[['Delante de un vado señalizado','In front of a signed driveway'],['En zona azul pagando el ticket','In a paid blue zone with a ticket'],['En un aparcamiento autorizado','In an authorised car park']],x:['También en carriles bus, pasos de peatones y doble fila.','Also in bus lanes, zebra crossings and double-parked.']},
+ {t:'par',q:['¿Puedes estacionar en doble fila si pones los warning?','May you double-park with hazard lights on?'],o:[['No','No'],['Sí, durante 5 minutos','Yes, for 5 minutes'],['Sí, si no molesto','Yes, if I don\'t block anyone']],x:['La doble fila está prohibida.','Double parking is forbidden.']},
+ {t:'par',q:['Estacionas en una calle cuesta abajo con bordillo. ¿Cómo dejas las ruedas delanteras?','You park downhill on a street with a kerb. How do you leave the front wheels?'],o:[['Giradas hacia el bordillo','Turned towards the kerb'],['Rectas','Straight'],['Giradas hacia la calzada','Turned towards the road']],x:['Además, freno de mano y marcha engranada.','Plus handbrake and a gear engaged.']},
+
+ {t:'luz',q:['Entras en un túnel bien iluminado de día. ¿Qué luces llevas?','You enter a well-lit tunnel by day. Which lights do you use?'],o:[['Las de cruce','Dipped beam'],['Ninguna, está iluminado','None, it is lit'],['Solo las de posición','Sidelights only']],x:['En túneles el alumbrado de cruce es obligatorio siempre.','Dipped beam is always compulsory in tunnels.']},
+ {t:'luz',q:['¿Cuándo puedes usar la luz antiniebla trasera?','When may you use the rear fog light?'],o:[['Con niebla densa o lluvia o nieve muy intensas','In dense fog or very heavy rain or snow'],['Con lluvia ligera','In light rain'],['Siempre de noche en carretera','Always at night on the open road']],x:['Fuera de esos casos deslumbra a quien va detrás.','Otherwise it dazzles the driver behind.']},
+ {t:'luz',q:['Te deslumbra un vehículo de frente. ¿Qué haces?','You are dazzled by an oncoming vehicle. What do you do?'],o:[['Reducir la velocidad y mirar al borde derecho de la calzada','Slow down and look at the right edge of the road'],['Mirar fijamente sus faros','Stare at its headlights'],['Poner las largas','Switch to main beam']],x:['Si es necesario, detente.','Stop if necessary.']},
+ {t:'luz',q:['Con niebla, ¿es útil poner las luces largas?','In fog, is main beam useful?'],o:[['No, la luz se refleja y empeora la visibilidad','No, the light reflects and worsens visibility'],['Sí, siempre','Yes, always'],['Solo en curvas','Only on bends']],x:['Usa cortas y antiniebla.','Use dipped beam and fog lights.']},
+ {t:'luz',q:['Circulas de noche con largas y se acerca un vehículo de frente. ¿Qué haces?','Driving at night on main beam, a vehicle approaches. What do you do?'],o:[['Cambiar a luces de cruce','Switch to dipped beam'],['Apagar todas las luces','Turn all lights off'],['Mantener las largas','Keep main beam']],x:['Para no deslumbrar.','To avoid dazzling them.']},
+
+ {t:'alc',q:['¿Qué tasa máxima de alcohol en aire espirado tiene un conductor con más de 2 años de permiso?','What is the breath-alcohol limit for a driver with over 2 years\' experience?'],o:[['0,25 mg/l','0.25 mg/l'],['0,50 mg/l','0.50 mg/l'],['0,15 mg/l','0.15 mg/l']],x:['En sangre: 0,5 g/l.','In blood: 0.5 g/l.']},
+ {t:'alc',q:['¿Por encima de qué tasa en aire espirado conducir es delito?','Above which breath-alcohol level is driving a crime?'],o:[['0,60 mg/l','0.60 mg/l'],['0,50 mg/l','0.50 mg/l'],['0,30 mg/l','0.30 mg/l']],x:['Equivale a 1,2 g/l en sangre.','Equivalent to 1.2 g/l in blood.']},
+ {t:'alc',q:['Un agente te pide una prueba de alcoholemia y te niegas. ¿Qué consecuencia tiene?','An officer asks for a breath test and you refuse. What happens?'],o:[['Es un delito','It is a crime'],['Es una infracción leve','It is a minor offence'],['Nada, si no hubo accidente','Nothing, if there was no accident']],x:['Negarse está tipificado en el Código Penal.','Refusal is a criminal offence.']},
+ {t:'alc',q:['¿Qué elimina el alcohol de la sangre?','What removes alcohol from the blood?'],o:[['Solo el paso del tiempo','Only time'],['Tomar café','Drinking coffee'],['Una ducha fría','A cold shower']],x:['El hígado lo elimina a un ritmo fijo.','The liver clears it at a fixed rate.']},
+ {t:'alc',q:['Un medicamento lleva el pictograma de un coche dentro de un triángulo. ¿Qué indica?','A medicine shows a car inside a triangle. What does it mean?'],o:[['Que puede afectar a la capacidad de conducir','It can affect your ability to drive'],['Que está prohibido conducir siempre','Driving is always forbidden'],['Nada relevante para el conductor','Nothing relevant to drivers']],x:['Lee el prospecto y consulta al médico.','Read the leaflet and ask your doctor.']},
+ {t:'alc',q:['¿Cada cuánto se recomienda descansar en un viaje largo?','How often should you rest on a long journey?'],o:[['Cada 2 horas o 200 km','Every 2 hours or 200 km'],['Cada 4 horas','Every 4 hours'],['Cada 500 km','Every 500 km']],x:['Unos 20 minutos, y antes si notas sueño.','About 20 minutes, sooner if drowsy.']},
+ {t:'alc',q:['Das positivo en drogas en un control, aunque en poca cantidad. ¿Qué ocurre?','You test positive for drugs, even a small amount. What happens?'],o:[['Infracción: 6 puntos y 1.000 €','Offence: 6 points and €1,000'],['Nada, no hay tasa mínima superada','Nothing, no threshold was exceeded'],['Solo si hubo accidente','Only if there was an accident']],x:['Se sanciona la mera presencia de drogas.','The mere presence of drugs is penalised.']},
+
+ {t:'seg',q:['Un niño mide menos de 135 cm. ¿Cómo debe viajar?','A child is under 135 cm tall. How must they travel?'],o:[['En un sistema de retención infantil homologado y adecuado','In a suitable approved child restraint'],['Con el cinturón de adulto','With the adult seat belt'],['En brazos de un adulto','On an adult\'s lap']],x:['Y, por norma general, en los asientos traseros.','And as a rule in the rear seats.']},
+ {t:'seg',q:['¿Dónde deben viajar los menores de 135 cm, como norma general?','Where must children under 135 cm travel, as a rule?'],o:[['En los asientos traseros','In the rear seats'],['En el asiento delantero','In the front seat'],['Donde prefieran','Wherever they like']],x:['Excepciones: no hay asientos traseros, están ocupados por otros menores o no se puede instalar el SRI.','Exceptions: no rear seats, all taken by other children, or the seat cannot be fitted.']},
+ {t:'seg',q:['Instalas una silla infantil a contramarcha en el asiento delantero. ¿Qué debes hacer?','You fit a rear-facing child seat in the front. What must you do?'],o:[['Desactivar el airbag frontal del acompañante','Switch off the passenger front airbag'],['Asegurarte de que el airbag está activado','Make sure the airbag is on'],['Nada especial','Nothing special']],x:['El airbag podría causar lesiones graves al niño.','The airbag could seriously injure the child.']},
+ {t:'seg',q:['¿A qué altura debe quedar el reposacabezas?','How high should the head restraint be?'],o:[['Con el borde superior a la altura de la parte superior de la cabeza','Top edge level with the top of the head'],['A la altura del cuello','At neck height'],['Lo más bajo posible','As low as possible']],x:['Protege frente al latigazo cervical.','It protects against whiplash.']},
+ {t:'seg',q:['¿Es obligatorio el cinturón en los asientos traseros?','Is the seat belt compulsory in the rear seats?'],o:[['Sí, siempre','Yes, always'],['Solo en carretera','Only outside towns'],['No','No']],x:['No llevarlo supone 4 puntos.','Not wearing it costs 4 points.']},
+ {t:'seg',q:['¿Por qué lado debe caminar un peatón en una carretera sin acera ni arcén?','Which side should a pedestrian walk on a road without pavement or shoulder?'],o:[['Por la izquierda','On the left'],['Por la derecha','On the right'],['Por el centro','In the middle']],x:['Así ve de frente los vehículos que se acercan por su lado.','So they face oncoming traffic on their side.']},
+ {t:'seg',q:['¿Pueden dos ciclistas circular en paralelo por una carretera?','May two cyclists ride side by side on a road?'],o:[['Sí, en columna de a dos','Yes, two abreast'],['No, nunca','No, never'],['Solo en autopistas','Only on motorways']],x:['Deben ponerse en fila en tramos sin visibilidad o con tráfico acumulado.','They must go single file where visibility is poor or traffic builds up.']},
+
+ {t:'veh',q:['¿Cuál es la profundidad mínima del dibujo de los neumáticos?','What is the minimum tyre tread depth?'],o:[['1,6 mm','1.6 mm'],['1 mm','1 mm'],['3 mm','3 mm']],x:['Por debajo, el riesgo de aquaplaning se dispara.','Below it, aquaplaning risk rises sharply.']},
+ {t:'veh',q:['¿Cuándo se debe comprobar la presión de los neumáticos?','When should tyre pressure be checked?'],o:[['En frío','When cold'],['Tras un viaje largo','After a long trip'],['Da igual','It doesn\'t matter']],x:['En caliente la presión sube y la lectura engaña.','Hot tyres read higher.']},
+ {t:'veh',q:['¿Cuándo pasa la primera ITV un turismo nuevo?','When does a new car have its first ITV inspection?'],o:[['A los 4 años','At 4 years'],['A los 2 años','At 2 years'],['A los 10 años','At 10 years']],x:['Luego cada 2 años hasta los 10, y después cada año.','Then every 2 years until 10, then yearly.']},
+ {t:'veh',q:['¿Cómo se comprueba correctamente el nivel de aceite?','How do you check the oil level correctly?'],o:[['Con el motor parado y frío, en llano','Engine off and cold, on level ground'],['Con el motor en marcha','With the engine running'],['Justo después de un viaje, en cuesta','Right after a trip, on a slope']],x:['Así el aceite está en el cárter.','That way the oil has settled in the sump.']},
+ {t:'veh',q:['Frenada de emergencia en un coche con ABS. ¿Cómo frenas?','Emergency braking in a car with ABS. How do you brake?'],o:[['Pisando a fondo y manteniendo la presión','Pressing hard and holding it'],['Bombeando el pedal','Pumping the pedal'],['Solo con el freno de mano','Only with the handbrake']],x:['El ABS evita el bloqueo y te deja dirigir el coche.','ABS prevents lock-up and lets you steer.']},
+ {t:'veh',q:['Se enciende un testigo rojo en el cuadro. ¿Qué indica?','A red warning light comes on. What does it mean?'],o:[['Avería o peligro grave: detente en cuanto sea seguro','Serious fault: stop as soon as safe'],['Información sin importancia','Unimportant information'],['Que una función está activada','A feature is switched on']],x:['Ámbar: revisión pronto. Verde/azul: funciones activas.','Amber: check soon. Green/blue: features on.']},
+ {t:'veh',q:['¿Qué seguro es obligatorio para circular?','Which insurance is compulsory to drive?'],o:[['El de responsabilidad civil','Third-party liability'],['El seguro a todo riesgo','Comprehensive cover'],['Ninguno','None']],x:['Cubre los daños que causes a terceros.','It covers damage you cause to others.']},
+
+ {t:'via',q:['Notas aquaplaning: la dirección se queda "ligera". ¿Qué haces?','You feel aquaplaning: the steering goes light. What do you do?'],o:[['Soltar el acelerador, sujetar el volante y no frenar bruscamente','Ease off, hold the wheel and don\'t brake hard'],['Frenar a fondo','Brake hard'],['Girar bruscamente','Steer sharply']],x:['Espera a recuperar la adherencia.','Wait to regain grip.']},
+ {t:'via',q:['¿En qué ruedas se colocan las cadenas?','Which wheels do snow chains go on?'],o:[['En las ruedas motrices','The drive wheels'],['Siempre en las traseras','Always the rear'],['En las cuatro obligatoriamente','All four, always']],x:['Las que transmiten la tracción.','The wheels that drive the car.']},
+ {t:'via',q:['Hay fuerte viento lateral. ¿Qué haces?','There is a strong crosswind. What do you do?'],o:[['Reducir la velocidad y sujetar firmemente el volante','Slow down and hold the wheel firmly'],['Acelerar para pasar rápido','Speed up to get through'],['Circular por el arcén','Drive on the shoulder']],x:['Cuidado al adelantar a camiones y al salir de túneles.','Take care passing lorries and leaving tunnels.']},
+ {t:'via',q:['En una bajada larga y pronunciada, ¿cómo controlas la velocidad?','On a long steep descent, how do you control speed?'],o:[['Con freno motor, en la marcha que usarías para subir','With engine braking, in the gear used to climb'],['En punto muerto','In neutral'],['Solo con el pedal de freno','Only with the brake pedal']],x:['Abusar del freno lo calienta y pierde eficacia.','Overusing the brakes overheats them.']},
+ {t:'via',q:['¿Pueden circular bicicletas por una autopista?','May bicycles use a motorway?'],o:[['No','No'],['Sí, por el arcén','Yes, on the shoulder'],['Sí, por el carril derecho','Yes, in the right lane']],x:['En autovías sí pueden usar el arcén, salvo prohibición.','On dual carriageways they may use the shoulder unless prohibited.']},
+
+ {t:'acc',q:['¿Qué significa la conducta PAS?','What does PAS stand for?'],o:[['Proteger, Avisar, Socorrer','Protect, Alert, Help'],['Parar, Ayudar, Salir','Stop, Assist, Leave'],['Prevenir, Atender, Señalizar','Prevent, Attend, Signal']],x:['En ese orden.','In that order.']},
+ {t:'acc',q:['Tu coche se avería en una carretera. Desde 2026, ¿cómo lo señalizas?','Your car breaks down on a road. Since 2026, how do you signal it?'],o:[['Con la baliza V-16 conectada','With the connected V-16 beacon'],['Con dos triángulos','With two triangles'],['Con una linterna','With a torch']],x:['Desde el 1 de enero de 2026 sustituye a los triángulos.','Since 1 January 2026 it replaces triangles.']},
+ {t:'acc',q:['Debes salir del coche en el arcén de una autovía. ¿Qué haces antes?','You must get out on the shoulder of a dual carriageway. What first?'],o:[['Ponerme el chaleco reflectante','Put on the reflective vest'],['Abrir el capó','Open the bonnet'],['Encender las largas','Switch on main beam']],x:['El chaleco se coloca antes de salir.','Put the vest on before getting out.']},
+ {t:'acc',q:['Un motorista herido está consciente con el casco puesto. ¿Se lo quitas?','An injured motorcyclist is conscious wearing a helmet. Do you remove it?'],o:[['No','No'],['Sí, para que respire mejor','Yes, to help them breathe'],['Sí, siempre','Yes, always']],x:['Podría agravar una lesión cervical.','It could worsen a neck injury.']},
+ {t:'acc',q:['Un herido está inconsciente pero respira. ¿Qué haces?','A casualty is unconscious but breathing. What do you do?'],o:[['Colocarlo en posición lateral de seguridad','Place them in the recovery position'],['Darle agua','Give them water'],['Hacer compresiones torácicas','Start chest compressions']],x:['Salvo sospecha de lesión de columna.','Unless spinal injury is suspected.']},
+ {t:'acc',q:['¿Qué secuencia de RCP se recomienda para un adulto?','What CPR sequence is recommended for an adult?'],o:[['30 compresiones y 2 ventilaciones','30 compressions and 2 breaths'],['15 compresiones y 1 ventilación','15 compressions and 1 breath'],['5 compresiones y 5 ventilaciones','5 compressions and 5 breaths']],x:['A un ritmo de 100–120 por minuto.','At 100–120 per minute.']},
+ {t:'acc',q:['Un herido sangra abundantemente por una herida. ¿Qué haces primero?','A casualty is bleeding heavily. What do you do first?'],o:[['Presión directa sobre la herida','Direct pressure on the wound'],['Darle de beber','Give them a drink'],['Moverlo al coche','Move them to the car']],x:['Con un paño limpio si es posible.','With a clean cloth if possible.']},
+ {t:'acc',q:['¿A qué número llamas para avisar de un accidente?','Which number do you call to report an accident?'],o:[['112','112'],['091','091'],['010','010']],x:['El 112 es el número europeo de emergencias.','112 is the European emergency number.']},
+ {t:'acc',q:['¿Cómo actúas ante una quemadura?','How do you treat a burn?'],o:[['Enfriar con agua fresca y no reventar las ampollas','Cool with water and don\'t burst blisters'],['Aplicar aceite','Apply oil'],['Reventar las ampollas','Burst the blisters']],x:['Durante varios minutos.','For several minutes.']},
+
+ {t:'pts',q:['¿Con cuántos puntos empieza un conductor novel?','How many points does a new driver start with?'],o:[['8','8'],['12','12'],['15','15']],x:['Pasa a 12 tras 2 años sin perder puntos.','12 after 2 years without losing points.']},
+ {t:'pts',q:['¿Cuál es el saldo máximo de puntos?','What is the maximum points balance?'],o:[['15','15'],['12','12'],['20','20']],x:['Se gana bonificación por conducir sin infracciones.','You earn bonuses for driving without offences.']},
+ {t:'pts',q:['¿Qué descuento tiene una multa si la pagas pronto?','What discount does early payment of a fine get?'],o:[['50 % si pagas en 20 días naturales','50% within 20 calendar days'],['25 % en un mes','25% within a month'],['Ninguno','None']],x:['Los puntos se pierden igualmente.','Points are still deducted.']},
+ {t:'pts',q:['¿Qué ocurre si pierdes todos los puntos?','What happens if you lose all your points?'],o:[['El permiso pierde su vigencia','The licence loses its validity'],['Pagas una multa extra','You pay an extra fine'],['Vuelves a tener 8 puntos','You go back to 8 points']],x:['Deberás hacer un curso y un examen para recuperarlo.','You must take a course and exam to recover it.']},
+ {t:'pts',q:['Circulas a más de 80 km/h por encima del límite en una carretera interurbana. ¿Qué es?','You drive over 80 km/h above the limit on an interurban road. What is it?'],o:[['Un delito','A crime'],['Una infracción leve','A minor offence'],['Una infracción sin puntos','An offence without points']],x:['En vía urbana, a partir de 60 km/h por encima.','In towns, from 60 km/h above.']},
+
+ {t:'env',q:['¿A qué revoluciones se recomienda cambiar de marcha en un coche de gasolina?','At what revs should you change up in a petrol car?'],o:[['Entre 2.000 y 2.500 rpm','Between 2,000 and 2,500 rpm'],['Entre 4.000 y 5.000 rpm','Between 4,000 and 5,000 rpm'],['Por debajo de 1.000 rpm','Below 1,000 rpm']],x:['En diésel, entre 1.500 y 2.000 rpm.','For diesel, 1,500–2,000 rpm.']},
+ {t:'env',q:['¿Cómo afecta una presión baja de neumáticos al consumo?','How does low tyre pressure affect fuel consumption?'],o:[['Lo aumenta','It increases it'],['Lo reduce','It reduces it'],['No influye','No effect']],x:['Aumenta la resistencia a la rodadura.','Rolling resistance goes up.']},
+ {t:'env',q:['¿Qué vehículos llevan la etiqueta 0 (azul)?','Which vehicles get the 0 (blue) label?'],o:[['Eléctricos e híbridos enchufables con más de 40 km de autonomía','Electric and plug-in hybrids with over 40 km range'],['Todos los diésel modernos','All modern diesels'],['Los coches de gasolina nuevos','New petrol cars']],x:['ECO: híbridos y gas. C: verde. B: amarilla.','ECO: hybrids and gas. C: green. B: yellow.']},
+ {t:'env',q:['¿Qué municipios deben tener zonas de bajas emisiones (ZBE)?','Which towns must have low-emission zones (ZBE)?'],o:[['Los de más de 50.000 habitantes','Those over 50,000 inhabitants'],['Solo Madrid y Barcelona','Only Madrid and Barcelona'],['Ninguno, es voluntario','None, it is voluntary']],x:['Según la Ley de Cambio Climático.','Under the Climate Change Act.']},
+ {t:'env',q:['Llevas la baca vacía en el techo. ¿Qué efecto tiene?','You leave an empty roof rack on. What is the effect?'],o:[['Aumenta el consumo','Higher fuel consumption'],['Ninguno','None'],['Mejora la aerodinámica','Better aerodynamics']],x:['Quítala cuando no la uses.','Remove it when not in use.']},
+ {t:'env',q:['En una parada de más de 1 minuto, ¿qué es más eficiente?','For a stop longer than 1 minute, what is more efficient?'],o:[['Apagar el motor','Switch off the engine'],['Dejarlo al ralentí','Leave it idling'],['Acelerar en vacío','Rev the engine']],x:['Al ralentí también se consume combustible.','Idling still burns fuel.']}
+];
+
+/* ============ Generators: produce fresh variants every run ============ */
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const pick=(a,n)=>shuffle(a).slice(0,n);
+const nf=(n,l)=>{const s=(Math.round(n*100)/100).toString();return l===0?s.replace('.',','):s};
+const both=f=>[f(0),f(1)];
+const distinct=(ans,cands,n=2)=>pick([...new Set(cands.filter(c=>c!==ans&&c>0))],n);
+
+const SIGNS=[
+ {k:'stop',a:['Detención obligatoria y ceder el paso','Stop and give way'],w:[['Ceda el paso sin detenerse si no viene nadie','Give way without stopping if clear'],['Circulación prohibida','No vehicles'],['Fin de prioridad','End of priority']]},
+ {k:'yield',a:['Ceda el paso','Give way'],w:[['Detención obligatoria','Mandatory stop'],['Peligro: intersección','Danger: junction'],['Calzada con prioridad','Priority road']]},
+ {k:'noEntry',a:['Entrada prohibida','No entry'],w:[['Circulación prohibida en ambos sentidos','No vehicles in either direction'],['Prohibido estacionar','No parking'],['Fin de prohibiciones','End of restrictions']]},
+ {k:'closed',a:['Circulación prohibida para todos los vehículos','No vehicles allowed'],w:[['Entrada prohibida solo en este sentido','No entry in this direction only'],['Fin de prohibiciones','End of restrictions'],['Parada prohibida','No stopping']]},
+ {k:'noPark',a:['Estacionamiento prohibido','No parking'],w:[['Parada y estacionamiento prohibidos','No stopping or parking'],['Entrada prohibida','No entry'],['Estacionamiento limitado','Limited parking']]},
+ {k:'noStop',a:['Parada y estacionamiento prohibidos','No stopping or parking'],w:[['Solo estacionamiento prohibido','No parking only'],['Fin de prohibición de estacionar','End of no parking'],['Circulación prohibida','No vehicles']]},
+ {k:'prio',a:['Calzada con prioridad','Priority road'],w:[['Fin de calzada con prioridad','End of priority road'],['Ceda el paso en la próxima intersección','Give way at the next junction'],['Peligro: obras','Danger: roadworks']]},
+ {k:'endPrio',a:['Fin de calzada con prioridad','End of priority road'],w:[['Calzada con prioridad','Priority road'],['Fin de prohibiciones','End of restrictions'],['Prioridad a la derecha','Priority to the right']]},
+ {k:'danger',a:['Otros peligros','Other dangers'],w:[['Prohibido el paso','No entry'],['Información general','General information'],['Detención obligatoria','Mandatory stop']]},
+ {k:'endAll',a:['Fin de prohibiciones','End of all restrictions'],w:[['Fin de calzada con prioridad','End of priority road'],['Circulación prohibida','No vehicles'],['Fin de autopista','End of motorway']]},
+ {k:'noOvertake',a:['Adelantamiento prohibido','No overtaking'],w:[['Fin de adelantamiento prohibido','End of no overtaking'],['Prohibido circular en paralelo','No driving side by side'],['Prohibido a turismos','No cars']]}
+];
+const ARROWS=[[0,['recto','straight ahead']],[-90,['a la izquierda','to the left']],[90,['a la derecha','to the right']]];
+function genSign(){
+  const r=Math.random();
+  if(r<.35){ // speed signs with a random number
+    const kind=rnd(['max','max','min','adv','endMax']);
+    const n=kind==='max'?rnd([20,30,40,50,60,70,80,90,100,110,120]):kind==='min'?rnd([30,40,50,60,70,80]):kind==='adv'?rnd([20,30,40,50,60,70,80]):rnd([30,40,50,60,70,80,90]);
+    const L={max:['Velocidad máxima '+n+' km/h','Maximum speed '+n+' km/h'],min:['Velocidad mínima obligatoria '+n+' km/h','Minimum speed '+n+' km/h'],adv:['Velocidad aconsejada '+n+' km/h','Advisory speed '+n+' km/h'],endMax:['Fin de limitación de velocidad a '+n+' km/h','End of '+n+' km/h limit']};
+    const wrong=pick(Object.keys(L).filter(k=>k!==kind),2).map(k=>L[k]);
+    return {t:'sig',k:'sig-'+kind+n,img:sign(kind,n),q:['¿Qué indica esta señal?','What does this sign mean?'],o:[L[kind],...wrong],x:['Rojo: límite máximo. Azul circular: mínima obligatoria. Azul cuadrada: aconsejada. Gris con franjas: fin.','Red ring: maximum. Blue circle: compulsory minimum. Blue square: advisory. Grey with stripes: end.']};
+  }
+  if(r<.45){const [d,lab]=rnd(ARROWS);
+    return {t:'sig',k:'sig-arrow'+d,img:sign('arrow',d),q:['¿Qué indica esta señal?','What does this sign mean?'],o:[['Sentido obligatorio '+lab[0],'Compulsory direction '+lab[1]],['Recomendación de dirección '+lab[0],'Suggested direction '+lab[1]],['Calle de sentido único','One-way street']],x:['Círculo azul: obligación.','Blue circle: obligation.']};}
+  const s=rnd(SIGNS);
+  return {t:'sig',k:'sig-'+s.k,img:sign(s.k),q:['¿Qué indica esta señal?','What does this sign mean?'],o:[s.a,...pick(s.w,2)],x:[s.a[0]+'.',s.a[1]+'.']};
+}
+const ROADS=[[['una autopista o autovía','a motorway or dual carriageway'],120],[['una carretera convencional','a conventional road'],90],[['una vía urbana con un único carril por sentido','an urban street with one lane each way'],30],[['una vía urbana con dos o más carriles por sentido','an urban street with two or more lanes each way'],50],[['una calle de plataforma única (acera y calzada al mismo nivel)','a single-surface street (pavement and road level)'],20],[['una travesía','a road through a town (travesía)'],50]];
+const PTS=[[['Conducir sujetando el móvil con la mano','Driving while holding a phone'],6],[['No llevar el cinturón de seguridad','Not wearing a seat belt'],4],[['Saltarse un semáforo en rojo','Running a red light'],4],[['No detenerse en un STOP','Not stopping at a STOP sign'],4],[['Conducir con presencia de drogas','Driving with drugs in your system'],6],[['Conducir con más de 0,50 mg/l de alcohol en aire','Driving with over 0.50 mg/l breath alcohol'],6],[['Conducir con entre 0,25 y 0,50 mg/l de alcohol en aire','Driving with 0.25–0.50 mg/l breath alcohol'],4],[['Llevar un inhibidor de radar','Using a radar jammer'],6],[['Llevar a un niño sin sistema de retención infantil','Carrying a child without a child seat'],4],[['Conducir una moto sin casco','Riding a motorcycle without a helmet'],4]];
+const GENS=[
+ {t:'vel',n:2,f(){const v=rnd([40,50,60,70,80,90,100,110,120,130]),s=rnd([1,1,1.5,2]);const d=Math.round(v/3.6*s);
+   return {t:'vel',k:'react-'+v+'-'+s,q:both(l=>l===0?`A ${v} km/h, con un tiempo de reacción de ${nf(s,0)} s, ¿qué distancia aproximada recorres antes de empezar a frenar?`:`At ${v} km/h, with a ${s} s reaction time, roughly how far do you travel before you start braking?`),
+   o:[[d+' m',d+' m'],...distinct(d,[d*2,Math.round(d/2),Math.round(v*s),d+15]).map(x=>[x+' m',x+' m'])],
+   x:both(l=>l===0?`${v} km/h ÷ 3,6 ≈ ${(v/3.6).toFixed(1).replace('.',',')} m/s × ${nf(s,0)} s ≈ ${d} m.`:`${v} km/h ÷ 3.6 ≈ ${(v/3.6).toFixed(1)} m/s × ${s} s ≈ ${d} m.`)}}},
+ {t:'vel',n:1,f(){const k=rnd([2,3,0.5]);
+   if(k===0.5)return {t:'vel',k:'brk-half',q:['Si reduces la velocidad a la mitad, ¿cómo cambia la distancia de frenado?','If you halve your speed, how does braking distance change?'],o:[['Se reduce a la cuarta parte','It falls to a quarter'],['Se reduce a la mitad','It halves'],['Se reduce a la octava parte','It falls to an eighth']],x:['La distancia de frenado depende del cuadrado de la velocidad: (1/2)² = 1/4.','Braking distance depends on speed squared: (1/2)² = 1/4.']};
+   const a=k*k;return {t:'vel',k:'brk-'+k,q:both(l=>l===0?`Si multiplicas la velocidad por ${k}, la distancia de frenado se multiplica aproximadamente por:`:`If you multiply your speed by ${k}, braking distance multiplies roughly by:`),o:[[String(a),String(a)],...distinct(a,[k,k*2,k*k*k]).map(x=>[String(x),String(x)])],x:both(l=>l===0?`Depende del cuadrado de la velocidad: ${k}² = ${a}.`:`It depends on speed squared: ${k}² = ${a}.`)}}},
+ {t:'vel',n:2,f(){const [r,v]=rnd(ROADS);const c=distinct(v,[20,30,40,50,60,70,80,90,100,110,120,130].filter(x=>Math.abs(x-v)<=40));
+   return {t:'vel',k:'lim-'+r[1],q:both(l=>l===0?`Sin otra señalización, ¿cuál es la velocidad máxima de un turismo en ${r[0]}?`:`With no other signs, what is a car's speed limit on ${r[1]}?`),o:[[v+' km/h',v+' km/h'],...c.map(x=>[x+' km/h',x+' km/h'])],x:['Autopista 120 · convencional 90 · urbana 50/30/20 según carriles.','Motorway 120 · conventional 90 · urban 50/30/20 depending on lanes.']}}},
+ {t:'vel',n:1,f(){const v=rnd([50,60,70,80,90,100,110,120]);const d=Math.round(2*v/3.6/5)*5;
+   return {t:'vel',k:'gap-'+v,q:both(l=>l===0?`Aplicando la regla de los 2 segundos a ${v} km/h, ¿qué distancia aproximada guardas con el vehículo de delante?`:`Using the 2-second rule at ${v} km/h, roughly what gap do you keep to the vehicle ahead?`),o:[['≈ '+d+' m','≈ '+d+' m'],...distinct(d,[Math.round(d/2/5)*5||5,d*2,d+30]).map(x=>['≈ '+x+' m','≈ '+x+' m'])],x:both(l=>l===0?`2 s × ${v}/3,6 m/s ≈ ${d} m. Auméntala con lluvia o de noche.`:`2 s × ${v}/3.6 m/s ≈ ${d} m. Increase it in rain or at night.`)}}},
+ {t:'vel',n:1,f(){const v=rnd([50,60,80,90,100,120]);const re=Math.round(v/3.6),br=Math.round((v/10)**2),tot=re+br;
+   return {t:'vel',k:'stopd-'+v,q:both(l=>l===0?`En seco, con 1 s de reacción, ¿cuál es la distancia de detención aproximada a ${v} km/h? (frenado ≈ (v/10)²)`:`On a dry road with 1 s reaction, what is the approximate stopping distance at ${v} km/h? (braking ≈ (v/10)²)`),o:[['≈ '+tot+' m','≈ '+tot+' m'],...distinct(tot,[br,re,tot*2]).map(x=>['≈ '+x+' m','≈ '+x+' m'])],x:both(l=>l===0?`Reacción ≈ ${re} m + frenado ≈ ${br} m = ${tot} m.`:`Reaction ≈ ${re} m + braking ≈ ${br} m = ${tot} m.`)}}},
+ {t:'alc',n:2,f(){const who=rnd([[['un conductor con más de 2 años de permiso','a driver with over 2 years\' experience'],0],[['un conductor novel (menos de 2 años)','a new driver (under 2 years)'],1],[['un conductor profesional','a professional driver'],1]]);const air=Math.random()<.5;
+   const val=air?(who[1]?0.15:0.25):(who[1]?0.3:0.5);const pool=air?[0.15,0.25,0.5,0.6]:[0.3,0.5,0.8,1.2];const u=air?'mg/l':'g/l';
+   return {t:'alc',k:'alc-'+who[1]+air,q:both(l=>l===0?`¿Cuál es la tasa máxima de alcohol en ${air?'aire espirado':'sangre'} para ${who[0][0]}?`:`What is the ${air?'breath':'blood'} alcohol limit for ${who[0][1]}?`),o:[both(l=>nf(val,l)+' '+u),...distinct(val,pool).map(x=>both(l=>nf(x,l)+' '+u))],x:['General: 0,25 mg/l aire / 0,5 g/l sangre. Noveles y profesionales: 0,15 / 0,3.','General: 0.25 mg/l breath / 0.5 g/l blood. New and professional drivers: 0.15 / 0.3.']}}},
+ {t:'pts',n:2,f(){const [inf,p]=rnd(PTS);
+   return {t:'pts',k:'pts-'+inf[1],q:both(l=>l===0?`¿Cuántos puntos se pierden por: ${inf[0].toLowerCase()}?`:`How many points do you lose for: ${inf[1].toLowerCase()}?`),o:[[String(p),String(p)],...distinct(p,[2,3,4,6]).map(x=>[String(x),String(x)])],x:['6 puntos: móvil, drogas, alcohol alto, inhibidores. 4 puntos: cinturón/casco/SRI, rojo, STOP, alcohol moderado.','6 points: phone, drugs, high alcohol, jammers. 4 points: belt/helmet/child seat, red light, STOP, moderate alcohol.']}}},
+ {t:'sig',n:8,f:genSign}
+];
+
+/* ============ State and storage ============ */
+const store={get(k,d){try{const v=localStorage.getItem('carnetB.'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('carnetB.'+k,JSON.stringify(v))}catch(e){}}};
+let lang=store.get('lang',(navigator.language||'').toLowerCase().startsWith('es')?0:1);
+let prog=Object.assign({seen:{},topic:{},exams:[],mistakes:{},recent:[]},store.get('prog',{}));
+const save=()=>store.set('prog',prog);
+const tr=a=>Array.isArray(a)?(a[lang]??a[0]):a;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const keyOf=q=>q.k||(q.t+':'+q.q[0]);
+const UI={
+ home:['Inicio','Home'],theory:['Teoría','Theory'],practice:['Practicar','Practice'],mistakes:['Fallos','Mistakes'],
+ sim:['Simulacro de examen DGT','DGT mock exam'],permit:['Permiso B','B licence'],q30:['30 preguntas','30 questions'],m30:['30 minutos','30 minutes'],e3:['Máx. 3 fallos','Max. 3 mistakes'],
+ start:['Empezar simulacro','Start mock exam'],quick:['Práctica rápida · 10','Quick practice · 10'],
+ exams:['Exámenes','Exams'],passrate:['Aprobados','Pass rate'],acc:['Acierto','Accuracy'],
+ lastExams:['Últimos exámenes','Recent exams'],noExams:['Aún no has hecho ningún simulacro. Cada uno se genera al azar: preguntas, orden de respuestas, señales y cifras cambian siempre.','No mock exams yet. Each one is generated at random: questions, answer order, signs and figures change every time.'],
+ weak:['Tus temas más flojos','Your weakest topics'],weakEmpty:['Responde unas preguntas y aquí verás qué temas repasar.','Answer a few questions and your weak topics will show here.'],
+ topics:['Temas','Topics'],qs:['preguntas','questions'],practiceTopic:['Practicar este tema','Practise this topic'],
+ chooseTopic:['Tema','Topic'],all:['Todos','All'],length:['Número de preguntas','Number of questions'],go:['Empezar','Start'],
+ practiceIntro:['Corrección inmediata con explicación. Las preguntas que falles se guardan en Fallos.','Instant feedback with explanations. Questions you miss are saved to Mistakes.'],
+ q:['Pregunta','Question'],next:['Siguiente','Next'],prev:['Anterior','Previous'],finish:['Corregir examen','Finish and mark'],check:['Comprobar','Check'],seeResults:['Ver resultados','See results'],
+ unanswered:['Te quedan {n} sin responder; contarán como fallo. ¿Corregir igualmente?','{n} unanswered; they will count as mistakes. Mark anyway?'],yes:['Sí, corregir','Yes, mark it'],no:['Seguir respondiendo','Keep answering'],
+ quit:['Salir','Quit'],apto:['APTO','PASS'],noapto:['NO APTO','FAIL'],errors:['fallos','mistakes'],of:['de','of'],
+ review:['Revisión','Review'],yours:['Tu respuesta','Your answer'],correct:['Correcta','Correct answer'],none:['Sin responder','Not answered'],
+ again:['Nuevo simulacro','New mock exam'],againP:['Otra práctica','Practise again'],backHome:['Volver al inicio','Back home'],
+ right:['¡Correcto!','Correct!'],wrong:['Incorrecto','Incorrect'],score:['Aciertos','Correct'],
+ mistakesIntro:['Preguntas que has fallado. Se borran solas cuando las aciertas.','Questions you got wrong. They clear when you answer them correctly.'],
+ reviewMist:['Repasar mis fallos','Review my mistakes'],clear:['Borrar todos','Clear all'],clearQ:['¿Borrar todos los fallos guardados?','Delete all saved mistakes?'],cancel:['Cancelar','Cancel'],
+ noMist:['No tienes fallos guardados.','No saved mistakes.'],timeUp:['Tiempo agotado','Time is up'],
+ disclaimer:['Material de estudio basado en el Reglamento General de Circulación y normas DGT vigentes en 2026. No es una herramienta oficial de la DGT.','Study material based on Spanish traffic rules and DGT regulations in force in 2026. Not an official DGT tool.']
+};
+const u=k=>tr(UI[k]);
+
+let view='home',arg=null,quiz=null,timerId=null,confirmFinish=false,confirmClear=false;
+
+/* ============ Question selection: weighted so unseen and previously failed questions come up more ============ */
+function buildPool(topic,onlyMist){
+  if(onlyMist)return Object.values(prog.mistakes);
+  const pool=BANK.filter(q=>!topic||q.t===topic).slice();
+  GENS.filter(g=>!topic||g.t===topic).forEach(g=>{const m=topic?g.n*2:g.n;for(let i=0;i<m;i++)pool.push(g.f())});
+  const seenK=new Set(),out=[];
+  for(const q of shuffle(pool)){const k=keyOf(q);if(!seenK.has(k)){seenK.add(k);out.push(q)}}
+  return out;
+}
+function sample(pool,n){
+  const recent=new Set(prog.recent||[]);
+  return pool.map(q=>{const k=keyOf(q);let w=1/(1+(prog.seen[k]||0));if(prog.mistakes[k])w*=2.5;if(recent.has(k))w*=.25;return [Math.random()**(1/w),q]})
+    .sort((a,b)=>b[0]-a[0]).slice(0,n).map(x=>x[1]);
+}
+const inst=q=>{const order=shuffle(q.o.map((_,i)=>i));return {q,order,correct:order.indexOf(0),chosen:null,checked:false}};
+
+function startQuiz(mode,opts={}){
+  let pool,n;
+  if(mode==='exam'){pool=buildPool();n=30}
+  else if(mode==='mist'){pool=buildPool(null,true);n=Math.min(pool.length,opts.n||20)}
+  else {pool=buildPool(opts.topic);n=Math.min(pool.length,opts.n||10)}
+  if(!pool.length)return;
+  const items=sample(pool,n).map(inst);
+  quiz={mode,items,i:0,topic:opts.topic||null,n:opts.n,start:Date.now(),deadline:mode==='exam'?Date.now()+30*60*1000:null,done:false};
+  confirmFinish=false;go('quiz');
+  if(mode==='exam'){clearInterval(timerId);timerId=setInterval(tick,1000)}
+}
+function tick(){
+  if(!quiz||quiz.done||!quiz.deadline){clearInterval(timerId);return}
+  const left=Math.max(0,quiz.deadline-Date.now());
+  const el=document.getElementById('timer');
+  if(el){el.textContent=fmtTime(left);el.classList.toggle('warn',left<5*60*1000)}
+  if(left<=0)finishQuiz(true);
+}
+const fmtTime=ms=>{const s=Math.ceil(ms/1000);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};
+
+function record(it){
+  const k=keyOf(it.q),ok=it.chosen===it.correct;
+  prog.seen[k]=(prog.seen[k]||0)+1;
+  const ts=prog.topic[it.q.t]||[0,0];ts[0]+=ok?1:0;ts[1]+=1;prog.topic[it.q.t]=ts;
+  if(ok)delete prog.mistakes[k];else prog.mistakes[k]=it.q;
+  prog.recent=[k,...(prog.recent||[]).filter(x=>x!==k)].slice(0,90);
+}
+function finishQuiz(timeUp){
+  if(!quiz||quiz.done)return;
+  clearInterval(timerId);
+  quiz.done=true;quiz.timeUp=!!timeUp;
+  if(quiz.mode==='exam'){quiz.items.forEach(record)}
+  else quiz.items.filter(it=>it.chosen!==null&&!it.checked).forEach(it=>{it.checked=true;record(it)});
+  const answered=quiz.items.filter(it=>quiz.mode==='exam'||it.chosen!==null);
+  const errors=answered.filter(it=>it.chosen!==it.correct).length;
+  quiz.errors=errors;quiz.total=answered.length;
+  if(quiz.mode==='exam'){prog.exams.push({d:Date.now(),e:errors,p:errors<=3});prog.exams=prog.exams.slice(-50)}
+  save();go('result');
+}
+
+/* ============ Views ============ */
+const ICONS={
+ home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
+ theory:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M8 7h7M8 11h7"/></svg>',
+ practice:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17v.5"/></svg>',
+ mistakes:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7"/></svg>'
+};
+function renderTabs(){
+  const nm=Object.keys(prog.mistakes).length;
+  const cur=view==='topic'?'theory':view==='quiz'||view==='result'?(quiz&&quiz.mode==='mist'?'mistakes':quiz&&quiz.mode==='exam'?'home':'practice'):view;
+  document.getElementById('tabs').innerHTML=['home','theory','practice','mistakes'].map(t=>`<button data-go="${t}" ${cur===t?'aria-current="page"':''}>${ICONS[t]}<span>${u(t)}${t==='mistakes'&&nm?` <span class="badge">${nm}</span>`:''}</span></button>`).join('');
+}
+function topicAcc(id){const s=prog.topic[id];return s&&s[1]?s[0]/s[1]:null}
+function vHome(){
+  const ex=prog.exams,passed=ex.filter(e=>e.p).length;
+  let r=0,t=0;Object.values(prog.topic).forEach(s=>{r+=s[0];t+=s[1]});
+  const weak=TOPICS.map(tp=>[tp,topicAcc(tp.id),(prog.topic[tp.id]||[0,0])[1]]).filter(x=>x[1]!==null&&x[2]>=3).sort((a,b)=>a[1]-b[1]).slice(0,3);
+  return `<div class="stack">
+  <section class="panel"><div class="panel-in">
+    <div class="eyebrow" style="color:rgba(255,255,255,.85)">${u('permit')} · DGT</div>
+    <h1>${u('sim')}</h1>
+    <div class="facts"><span>${u('q30')}</span><span>${u('m30')}</span><span>${u('e3')}</span></div>
+    <button class="btn primary full" data-act="exam">${u('start')}</button>
+  </div></section>
+  <div class="row"><button class="btn" data-act="quick">${u('quick')}</button><button class="btn" data-go="theory">${u('theory')}</button></div>
+  <div class="stats">
+    <div class="stat"><b>${ex.length}</b><span>${u('exams')}</span></div>
+    <div class="stat"><b>${ex.length?Math.round(passed/ex.length*100)+'%':'–'}</b><span>${u('passrate')}</span></div>
+    <div class="stat"><b>${t?Math.round(r/t*100)+'%':'–'}</b><span>${u('acc')}</span></div>
+  </div>
+  <section class="card stack" style="gap:10px"><h3>${u('lastExams')}</h3>
+    ${ex.length?`<div class="chips">${ex.slice(-10).reverse().map(e=>`<span class="chip ${e.p?'ok':'bad'}">${e.p?u('apto'):u('noapto')} · ${e.e} ${u('errors')}</span>`).join('')}</div>`:`<p class="muted">${u('noExams')}</p>`}
+  </section>
+  <section class="card stack" style="gap:12px"><h3>${u('weak')}</h3>
+    ${weak.length?`<div class="bars">${weak.map(([tp,a])=>bar(tp,a)).join('')}</div>`:`<p class="muted">${u('weakEmpty')}</p>`}
+  </section>
+  <p class="muted" style="font-size:.8rem">${u('disclaimer')}</p></div>`;
+}
+function bar(tp,a){const p=Math.round(a*100);return `<button class="bar" data-act="ptopic" data-t="${tp.id}" style="border:0;background:none;padding:0;text-align:left"><span>${esc(tr(tp.n))}</span><b style="font-variant-numeric:tabular-nums">${p}%</b><span class="track"><span class="fill ${p<60?'low':p<85?'mid':''}" style="width:${p}%;display:block"></span></span></button>`}
+function vTheory(){
+  return `<div class="stack"><h1>${u('topics')}</h1><div class="list">${TOPICS.map(tp=>{const n=BANK.filter(q=>q.t===tp.id).length+GENS.filter(g=>g.t===tp.id).length*3;const a=topicAcc(tp.id);
+    return `<button class="item" data-go="topic" data-arg="${tp.id}">${tp.ic()}<span class="t"><b>${esc(tr(tp.n))}</b><small>${n}+ ${u('qs')}${a!==null?' · '+Math.round(a*100)+'%':''}</small></span><span class="chev">›</span></button>`}).join('')}</div></div>`;
+}
+function vTopic(){
+  const tp=TOPIC[arg];
+  return `<div class="stack theory"><div style="display:flex;gap:12px;align-items:center">${tp.ic()}<h1 style="font-size:1.7rem">${esc(tr(tp.n))}</h1></div>
+  ${tp.s.map(([h,items])=>`<section class="card"><h3>${esc(tr(h))}</h3><ul>${items.map(it=>`<li>${esc(tr(it))}</li>`).join('')}</ul></section>`).join('')}
+  <button class="btn primary full" data-act="ptopic" data-t="${tp.id}">${u('practiceTopic')}</button></div>`;
+}
+let pSel={topic:null,n:10};
+function vPractice(){
+  return `<div class="stack"><h1>${u('practice')}</h1><p class="muted">${u('practiceIntro')}</p>
+  <section class="card stack" style="gap:10px"><div class="eyebrow">${u('chooseTopic')}</div><div class="chips">
+   <button class="chip" data-act="psel" data-t="" aria-pressed="${!pSel.topic}">${u('all')}</button>
+   ${TOPICS.map(tp=>`<button class="chip" data-act="psel" data-t="${tp.id}" aria-pressed="${pSel.topic===tp.id}">${esc(tr(tp.n))}</button>`).join('')}</div></section>
+  <section class="card stack" style="gap:10px"><div class="eyebrow">${u('length')}</div><div class="chips">
+   ${[10,20,30].map(n=>`<button class="chip" data-act="plen" data-n="${n}" aria-pressed="${pSel.n===n}">${n}</button>`).join('')}</div></section>
+  <button class="btn primary full" data-act="pstart">${u('go')}</button></div>`;
+}
+function vMistakes(){
+  const ms=Object.values(prog.mistakes);
+  if(!ms.length)return `<div class="stack"><h1>${u('mistakes')}</h1><div class="card empty">${sign('endAll')}<p>${u('noMist')}</p><button class="btn primary" data-act="exam">${u('start')}</button></div></div>`;
+  return `<div class="stack"><h1>${u('mistakes')}</h1><p class="muted">${u('mistakesIntro')}</p>
+  <div class="row"><button class="btn primary" data-act="mist">${u('reviewMist')} · ${Math.min(ms.length,20)}</button>
+  <button class="btn" data-act="clearask">${u('clear')}</button></div>
+  ${confirmClear?`<div class="confirm"><p>${u('clearQ')}</p><div class="row"><button class="btn primary" data-act="clearyes">${u('clear')}</button><button class="btn" data-act="clearno">${u('cancel')}</button></div></div>`:''}
+  <div class="review">${ms.slice().reverse().map(q=>`<div class="card">${q.img?q.img.replace('class="sg"','class="sg"'):''}<span class="eyebrow">${esc(tr(TOPIC[q.t].n))}</span><p style="font-weight:600">${esc(tr(q.q))}</p><p class="ans ok">✓ ${esc(tr(q.o[0]))}</p></div>`).join('')}</div></div>`;
+}
+function vQuiz(){
+  const it=quiz.items[quiz.i],q=it.q,n=quiz.items.length,exam=quiz.mode==='exam';
+  const show=!exam&&it.checked;
+  const opts=it.order.map((oi,pos)=>{let c='opt';if(show){if(pos===it.correct)c+=' right';else if(pos===it.chosen)c+=' wrong'}else if(pos===it.chosen)c+=' sel';
+    return `<button class="${c}" data-act="pick" data-pos="${pos}" ${show?'disabled':''}><span class="k">${'ABC'[pos]}</span><span>${esc(tr(q.o[oi]))}</span></button>`}).join('');
+  const unanswered=quiz.items.filter(x=>x.chosen===null).length;
+  return `<div class="stack">
+  <div class="qhead"><button class="btn" data-act="quit" style="min-height:40px;padding:6px 12px">${u('quit')}</button>
+   <span class="eyebrow">${u('q')} ${quiz.i+1} ${u('of')} ${n}</span>
+   ${exam?`<span class="timer" id="timer">${fmtTime(quiz.deadline-Date.now())}</span>`:`<span class="chip">${esc(tr(TOPIC[q.t].n)).split(' ')[0]}</span>`}</div>
+  ${exam?`<div class="grid30">${quiz.items.map((x,i)=>`<button data-act="jump" data-i="${i}" class="${x.chosen!==null?'done':''} ${i===quiz.i?'cur':''}" aria-label="${u('q')} ${i+1}">${i+1}</button>`).join('')}</div>`:`<div class="progress"><i style="width:${(quiz.i+(it.checked?1:0))/n*100}%"></i></div>`}
+  <section class="card stack" style="gap:14px">
+   ${q.img?q.img.replace('class="sg"','class="sg big"'):''}
+   <p class="qtext">${esc(tr(q.q))}</p>
+   <div class="opts">${opts}</div>
+   ${show?`<div class="explain"><b style="color:${it.chosen===it.correct?'var(--ok)':'var(--bad)'}">${it.chosen===it.correct?u('right'):u('wrong')}</b> ${esc(tr(q.x))}</div>`:''}
+  </section>
+  ${exam?`<div class="row"><button class="btn" data-act="prev" ${quiz.i===0?'disabled':''}>${u('prev')}</button>${quiz.i<n-1?`<button class="btn primary" data-act="next">${u('next')}</button>`:''}</div>
+   <button class="btn full" data-act="finish">${u('finish')}</button>
+   ${confirmFinish?`<div class="confirm"><p>${u('unanswered').replace('{n}',unanswered)}</p><div class="row"><button class="btn primary" data-act="finishyes">${u('yes')}</button><button class="btn" data-act="finishno">${u('no')}</button></div></div>`:''}`
+  :`<button class="btn primary full" data-act="${it.checked?(quiz.i<n-1?'next':'finishyes'):'check'}" ${it.chosen===null?'disabled':''}>${it.checked?(quiz.i<n-1?u('next'):u('seeResults')):u('check')}</button>`}
+  </div>`;
+}
+function vResult(){
+  const exam=quiz.mode==='exam',pass=exam?quiz.errors<=3:quiz.errors/Math.max(1,quiz.total)<=.1;
+  const okN=quiz.total-quiz.errors;
+  return `<div class="stack">
+  <div class="verdict ${pass?'pass':'fail'}">${quiz.timeUp?`<div class="eyebrow" style="color:#fff">${u('timeUp')}</div>`:''}
+   <h1>${exam?(pass?u('apto'):u('noapto')):okN+' / '+quiz.total}</h1>
+   <p style="font-size:1.1rem">${exam?`${quiz.errors} ${u('errors')} · ${okN} / ${quiz.total}`:u('score')}</p></div>
+  <div class="row"><button class="btn primary" data-act="${exam?'exam':quiz.mode==='mist'?'mist':'pagain'}">${exam?u('again'):u('againP')}</button><button class="btn" data-go="home">${u('backHome')}</button></div>
+  <h2>${u('review')}</h2>
+  <div class="review">${quiz.items.filter(it=>exam||it.chosen!==null).map((it,i)=>{const ok=it.chosen===it.correct;return `<div class="card">
+   <span class="eyebrow">${i+1} · ${esc(tr(TOPIC[it.q.t].n))}</span>${it.q.img||''}
+   <p style="font-weight:600">${esc(tr(it.q.q))}</p>
+   ${ok?`<p class="ans ok">✓ ${esc(tr(it.q.o[0]))}</p>`:`<p class="ans bad">✗ ${u('yours')}: ${it.chosen===null?u('none'):esc(tr(it.q.o[it.order[it.chosen]]))}</p><p class="ans ok">✓ ${u('correct')}: ${esc(tr(it.q.o[0]))}</p>`}
+   <p class="muted" style="font-size:.9rem">${esc(tr(it.q.x))}</p></div>`}).join('')}</div></div>`;
+}
+const VIEWS={home:vHome,theory:vTheory,topic:vTopic,practice:vPractice,mistakes:vMistakes,quiz:vQuiz,result:vResult};
+function render(){
+  document.documentElement.lang=lang===0?'es':'en';
+  document.getElementById('lang-es').setAttribute('aria-pressed',lang===0);
+  document.getElementById('lang-en').setAttribute('aria-pressed',lang===1);
+  if((view==='quiz'||view==='result')&&!quiz)view='home';
+  document.getElementById('view').innerHTML=VIEWS[view]();
+  renderTabs();
+}
+function go(v,a){if(view==='quiz'&&v!=='quiz'&&v!=='result'&&quiz&&!quiz.done){clearInterval(timerId);quiz=null}view=v;arg=a??arg;confirmClear=false;render();window.scrollTo(0,0)}
+
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]');if(g){go(g.dataset.go,g.dataset.arg);return}
+  const lb=e.target.closest('[data-lang]');if(lb){lang=+lb.dataset.lang;store.set('lang',lang);render();return}
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const a=b.dataset.act;
+  if(a==='exam')startQuiz('exam');
+  else if(a==='quick')startQuiz('practice',{n:10});
+  else if(a==='ptopic')startQuiz('practice',{topic:b.dataset.t,n:10});
+  else if(a==='pagain')startQuiz('practice',{topic:quiz.topic,n:quiz.n});
+  else if(a==='mist')startQuiz('mist',{n:20});
+  else if(a==='psel'){pSel.topic=b.dataset.t||null;render()}
+  else if(a==='plen'){pSel.n=+b.dataset.n;render()}
+  else if(a==='pstart')startQuiz('practice',{topic:pSel.topic,n:pSel.n});
+  else if(a==='pick'){const it=quiz.items[quiz.i];if(it.checked)return;it.chosen=+b.dataset.pos;confirmFinish=false;render()}
+  else if(a==='check'){const it=quiz.items[quiz.i];if(it.chosen===null)return;it.checked=true;record(it);save();render()}
+  else if(a==='next'){quiz.i=Math.min(quiz.items.length-1,quiz.i+1);render();window.scrollTo(0,0)}
+  else if(a==='prev'){quiz.i=Math.max(0,quiz.i-1);render()}
+  else if(a==='jump'){quiz.i=+b.dataset.i;render()}
+  else if(a==='finish'){const un=quiz.items.filter(x=>x.chosen===null).length;if(un){confirmFinish=true;render()}else finishQuiz()}
+  else if(a==='finishyes')finishQuiz();
+  else if(a==='finishno'){confirmFinish=false;render()}
+  else if(a==='quit'){go(quiz.mode==='exam'?'home':quiz.mode==='mist'?'mistakes':'practice')}
+  else if(a==='clearask'){confirmClear=true;render()}
+  else if(a==='clearyes'){prog.mistakes={};save();confirmClear=false;render()}
+  else if(a==='clearno'){confirmClear=false;render()}
+});
+render();
+</script>
+
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){})}</script>
+</body>
+</html>
